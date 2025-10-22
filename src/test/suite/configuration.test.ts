@@ -2,27 +2,37 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 /**
- * Test suite for configuration and settings
+ * Test suite for extension configuration and settings management
+ *
+ * Validates that the extension properly handles user configuration,
+ * provides appropriate defaults, and gracefully handles missing settings.
  */
 suite('Configuration Test Suite', () => {
+  /**
+   * Test graceful handling of missing or invalid configuration
+   * Ensures the extension doesn't crash with default/missing settings
+   */
   test('Extension should handle missing configuration gracefully', () => {
-    // Test that extension doesn't crash with default configuration
     const config = vscode.workspace.getConfiguration('kubito');
 
-    // These should not throw even if not configured
+    // Configuration access should never throw, even for missing settings
     assert.doesNotThrow(() => {
       config.get('autoShow', true);
       config.get('someNonExistentSetting', 'default');
-    }, 'Configuration access should be safe');
+    }, 'Configuration access should be safe and provide defaults');
   });
 
+  /**
+   * Test that workspace configuration is properly accessible and structured
+   * Validates the configuration system integration
+   */
   test('Extension should respect workspace configuration', () => {
     const config = vscode.workspace.getConfiguration('kubito');
 
-    // Test configuration exists and has expected structure
+    // Configuration object should be available
     assert.ok(config !== null, 'Configuration should be accessible');
 
-    // Test default values work
+    // Test that default values are properly handled
     const autoShow = config.get('autoShow', true);
 
     assert.ok(typeof autoShow === 'boolean', 'autoShow should be boolean');

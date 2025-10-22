@@ -1,11 +1,12 @@
 {
   "name": "vscode-kubito",
-  "displayName": "Kubito",
-  "description": "A Kubit friend for your VS Code editor",
+  "displayName": "Kubito - Your Coding Companion",
+  "description": "An interactive and animated companion for your VS Code editor. Kubito walks around, responds to clicks, and shows motivational messages to keep you company while coding.",
   "version": "0.1.1",
   "publisher": "Kubit",
   "author": {
-    "name": "Kubit"
+    "name": "Kubit",
+    "url": "https://kubit-ui.web.app/"
   },
   "license": "Apache-2.0",
   "repository": {
@@ -30,7 +31,13 @@
     "kubito",
     "kubit",
     "fun",
-    "interactive"
+    "interactive",
+    "animation",
+    "coding companion",
+    "productivity",
+    "entertainment",
+    "webview",
+    "sidebar"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
@@ -86,18 +93,18 @@
     "clean": "rm -rf out"
   },
   "devDependencies": {
-    "@types/glob": "^8.1.0",
-    "@types/mocha": "^10.0.0",
-    "@types/node": "^18.0.0",
-    "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vscode/test-electron": "^2.3.0",
-    "@vscode/vsce": "^2.22.0",
-    "eslint": "^8.0.0",
+    "@types/glob": "^9.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.9.1",
+    "@types/vscode": "^1.105.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.2",
+    "eslint": "^9.38.0",
     "glob": "^11.0.3",
-    "mocha": "^10.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0"
+    "mocha": "^11.7.4",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
   }
 }
