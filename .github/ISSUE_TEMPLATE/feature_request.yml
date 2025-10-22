@@ -1,0 +1,127 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature for VSCode Kubito! 💡
+
+        VSCode Kubito is a VS Code extension that brings Kubito, your friendly coding companion, directly to your editor.
+        We appreciate your ideas to make it even better!
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem Description
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when Kubito doesn't [specific behavior] or when I want to [specific interaction with Kubito]...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe alternatives you've considered
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your use case
+      placeholder: Explain how this feature would be used in VS Code, how it would enhance your coding experience with Kubito, or improve productivity. Why is it important for VSCode Kubito users?
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-usage
+    attributes:
+      label: Example Usage
+      description: Show how the feature would work in VSCode Kubito
+      render: javascript
+      placeholder: |
+        // VS Code settings.json
+        {
+          "kubito.newFeature.enabled": true,
+          "kubito.newFeature.options": {
+            // example configuration
+          }
+        }
+
+        // OR command usage
+        // Command Palette: "Kubito: New Feature Command"
+
+        // OR API usage in extension
+        await vscode.commands.executeCommand('kubito.newFeature', {
+          // example parameters
+        });
+
+  - type: checkboxes
+    id: feature-type
+    attributes:
+      label: Feature Type
+      options:
+        - label: New Kubito animation or behavior
+        - label: New VS Code command
+        - label: Configuration/settings enhancement
+        - label: Status bar or UI improvement
+        - label: Webview enhancement
+        - label: Performance improvement
+        - label: Developer experience improvement
+        - label: Documentation improvement
+        - label: Accessibility feature
+        - label: Integration with other VS Code features
+        - label: Customization options
+        - label: Other
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: If applicable, describe the expected visual or functional behavior of this feature
+      render: text
+      placeholder: |
+        When the user does X, Kubito should:
+        1. Display animation Y
+        2. Show notification Z
+        3. Update status bar with information W
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to your VS Code experience?
+      options:
+        - 'Nice to have'
+        - 'Would improve coding experience'
+        - 'Important for productivity'
+        - 'Critical for accessibility'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: implementation-help
+    attributes:
+      label: Implementation
+      options:
+        - label: I would be willing to help implement this feature
+        - label: I would be willing to write tests for this feature
+        - label: I would be willing to write documentation for this feature
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, links to similar features in other VS Code extensions, mockups, or screenshots about the feature request here.

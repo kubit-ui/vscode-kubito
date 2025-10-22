@@ -1,0 +1,129 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: '[Bug]: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report for VSCode Kubito! 🐛
+
+        VSCode Kubito is a VS Code extension that brings Kubito, your friendly coding companion, directly to your editor.
+        Please provide as much detail as possible to help us identify and fix the issue.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Open VS Code
+        2. Install VSCode Kubito extension
+        3. Open a workspace or file
+        4. Trigger Kubito (via command palette, status bar, etc.)
+        5. See error or unexpected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: VS Code Configuration
+      description: Please paste relevant VS Code settings or workspace configuration
+      render: json
+      placeholder: |
+        {
+          "kubito.enabled": true,
+          "kubito.showOnStartup": true,
+          "kubito.animations": true,
+          "kubito.position": "bottom-right"
+        }
+    validations:
+      required: false
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: VSCode Kubito Version
+      placeholder: '1.0.0'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-used
+    attributes:
+      label: Feature Used
+      description: Which VSCode Kubito feature were you using when the issue occurred?
+      options:
+        - 'Kubito animations/webview'
+        - 'Status bar integration'
+        - 'Command palette commands'
+        - 'Extension activation'
+        - 'Settings/configuration'
+        - 'Other'
+    validations:
+      required: true
+
+  - type: input
+    id: vscode-version
+    attributes:
+      label: VS Code Version
+      placeholder: '1.85.0'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: If you received an error message, please paste it here (check VS Code Developer Console)
+      render: shell
+      placeholder: |
+        Error in extension 'vscode-kubito': 
+        TypeError: Cannot read property...
+        Stack trace or error details from VS Code Developer Console...
+
+  - type: textarea
+    id: console-logs
+    attributes:
+      label: Console Logs (if applicable)
+      description: If available, paste relevant console logs from VS Code Developer Console
+      render: text
+      placeholder: |
+        [Extension Host] Kubito extension activated
+        [Extension Host] Error occurred during animation...
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (other extensions installed, workspace type, themes used, etc.)
