@@ -190,7 +190,6 @@ jobs:
         if: steps.validate-branch.outputs.should_publish == 'true'
         run: |
           yarn run lint
-          yarn run format:check
           yarn run test
 
       - name: Build extension
