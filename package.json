@@ -2,7 +2,7 @@
   "name": "vscode-kubito",
   "displayName": "Kubito - Your Coding Companion",
   "description": "An interactive and animated companion for your VS Code editor. Kubito walks around, responds to clicks, and shows motivational messages to keep you company while coding.",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "publisher": "Kubit",
   "author": {
     "name": "Kubit",
@@ -19,7 +19,7 @@
   "homepage": "https://github.com/kubit-ui/vscode-kubito#readme",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.74.0",
+    "vscode": "^1.105.0",
     "node": ">=18.0.0"
   },
   "categories": [
