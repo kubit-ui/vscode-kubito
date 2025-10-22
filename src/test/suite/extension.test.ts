@@ -2,31 +2,46 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 /**
- * Test suite for the main extension functionality
+ * Test suite for core extension functionality
+ *
+ * Validates that the Kubito extension loads properly, activates correctly,
+ * and registers all expected commands and providers with VS Code.
  */
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Start all tests.');
 
+  /**
+   * Verify that the extension is properly installed and discoverable
+   */
   test('Extension should be present', () => {
-    assert.ok(vscode.extensions.getExtension('Kubit.vscode-kubito'));
+    const extension = vscode.extensions.getExtension('Kubit.vscode-kubito');
+    assert.ok(extension, 'Extension should be installed and discoverable');
   });
 
+  /**
+   * Test extension activation process
+   * Ensures the extension can activate without errors
+   */
   test('Extension should activate', async () => {
     const extension = vscode.extensions.getExtension('Kubit.vscode-kubito');
-    assert.ok(extension);
+    assert.ok(extension, 'Extension must exist before activation test');
 
     if (extension && !extension.isActive) {
       await extension.activate();
     }
 
-    assert.ok(extension?.isActive);
+    assert.ok(extension?.isActive, 'Extension should be active after activation');
   });
 
+  /**
+   * Verify that all expected commands are registered with VS Code
+   * Tests both show and hide command registration
+   */
   test('Commands should be registered', async () => {
     const commands = await vscode.commands.getCommands();
 
-    assert.ok(commands.includes('kubito.show'));
-    assert.ok(commands.includes('kubito.hide'));
+    assert.ok(commands.includes('kubito.show'), 'kubito.show command should be registered');
+    assert.ok(commands.includes('kubito.hide'), 'kubito.hide command should be registered');
   });
 
   test('Webview should be available in Explorer', async () => {

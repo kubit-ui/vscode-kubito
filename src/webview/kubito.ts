@@ -1,5 +1,19 @@
 /**
- * Message type definitions for Kubito communication
+ * Kubito Webview Animation Controller
+ *
+ * This module provides an interactive Kubito companion that lives in the VS Code sidebar.
+ * Kubito walks around, jumps when clicked, and shows random messages to keep users engaged.
+ *
+ * Features:
+ * - Smooth walking animation with boundary detection
+ * - Click-to-jump interaction with proper state management
+ * - Random motivational messages with emoji support
+ * - Responsive to container size changes
+ * - Optimized performance with requestAnimationFrame
+ */
+
+/**
+ * Message type definitions for Kubito's communication system
  */
 interface IMessage {
   readonly type: 'emoji' | 'text' | 'image';
@@ -8,24 +22,26 @@ interface IMessage {
 }
 
 /**
- * Animation state tracking interface
+ * Complete animation state tracking for Kubito
+ * Manages position, movement, interactions, and display states
  */
 interface IAnimationState {
-  position: number;
-  direction: number;
-  speed: number;
-  animationId: number | null;
-  isPaused: boolean;
-  isJumping: boolean;
-  isShowingMessage: boolean;
-  messageInterval: number | null;
-  hasAdjustedDirectionForMessage: boolean; // Flag to prevent constant direction changes
-  jumpStartTime: number | null; // Track when jump started
-  jumpCompleted: boolean; // Flag to prevent double completion
+  position: number; // Current X position in pixels
+  direction: number; // Movement direction: 1 (right) or -1 (left)
+  speed: number; // Movement speed in pixels per frame
+  animationId: number | null; // RequestAnimationFrame ID for cleanup
+  isPaused: boolean; // Whether animation is paused
+  isJumping: boolean; // Whether currently performing jump animation
+  isShowingMessage: boolean; // Whether message bubble is visible
+  messageInterval: number | null; // Interval ID for message management
+  hasAdjustedDirectionForMessage: boolean; // Prevents constant direction changes
+  jumpStartTime: number | null; // Timestamp when jump animation started
+  jumpCompleted: boolean; // Prevents duplicate jump completion handling
 }
 
 /**
- * Kubito animation controller interface
+ * Main Kubito animation controller interface
+ * Defines the public API for controlling Kubito's behavior
  */
 interface IKubitoAnimator {
   readonly kubito: HTMLImageElement;
@@ -37,32 +53,43 @@ interface IKubitoAnimator {
 }
 
 /**
- * Constants for Kubito animation and movement
+ * Configuration constants for Kubito's animation and behavior
+ * All timing and sizing values are carefully tuned for optimal user experience
  */
 const KUBITO_CONFIG = {
-  SPEED: 0.3, // pixels per frame (relaxed movement for easy interaction)
-  JUMP_DURATION: 800, // milliseconds (0.8 seconds) - reduced for snappier feel
-  IDLE_DURATION: 500, // milliseconds (0.5 seconds) - more natural pause
-  CONTAINER_PADDING: 36, // pixels (kubito width)
-  KUBITO_WIDTH: 36, // pixels
-  KUBITO_HEIGHT: 36 // pixels
+  // Movement settings
+  SPEED: 0.3, // Pixels per frame - relaxed pace for easy interaction
+
+  // Animation timing
+  JUMP_DURATION: 800, // Jump animation duration in milliseconds
+  IDLE_DURATION: 500, // Pause duration between direction changes
+
+  // Layout dimensions
+  CONTAINER_PADDING: 36, // Padding to keep Kubito within visible bounds
+  KUBITO_WIDTH: 36, // Kubito sprite width in pixels
+  KUBITO_HEIGHT: 36 // Kubito sprite height in pixels
 } as const;
 
 /**
- * Constants for message system configuration
+ * Configuration constants for the message system
+ * Controls timing, sizing, and display behavior of Kubito's messages
  */
 const MESSAGE_CONFIG = {
-  DELAY_MIN: 5000, // milliseconds (5 seconds)
-  DELAY_MAX: 10000, // milliseconds (10 seconds)
-  DURATION: 3000, // milliseconds (3 seconds)
-  WIDTH_THRESHOLD: 0.8, // 80% of container width for multi-line
-  WIDTH_MAX: 1.0, // 100% of container width for truncation
-  EMOJI_SIZE: 16, // pixels (more reasonable size)
-  IMAGE_SIZE: 16 // pixels (more reasonable size)
-} as const; /**
- * Pre-defined messages that Kubito can display
+  DELAY_MIN: 5000, // Minimum delay between messages (5 seconds)
+  DELAY_MAX: 10000, // Maximum delay between messages (10 seconds)
+  DURATION: 3000, // How long each message stays visible (3 seconds)
+  WIDTH_THRESHOLD: 0.8, // Container width ratio for line wrapping
+  WIDTH_MAX: 1.0, // Maximum width ratio before truncation
+  EMOJI_SIZE: 16, // Emoji display size in pixels
+  IMAGE_SIZE: 16 // Image display size in pixels
+} as const;
+
+/**
+ * Pre-defined messages that Kubito can randomly display
+ * Mix of emojis, text, and branded images for variety and engagement
  */
 const KUBITO_MESSAGES: readonly IMessage[] = [
+  // Expressive emojis
   { type: 'emoji', content: '🤓' },
   { type: 'emoji', content: '😎' },
   { type: 'emoji', content: '🙃' },
@@ -71,63 +98,83 @@ const KUBITO_MESSAGES: readonly IMessage[] = [
   { type: 'emoji', content: '⁉️' },
   { type: 'emoji', content: '❤️' },
   { type: 'emoji', content: '🚫 🐛' },
+
+  // Motivational and fun text messages
   { type: 'text', content: 'Zzz...' },
   { type: 'text', content: '¡A programar! 🚀' },
   { type: 'text', content: '¿Un café? ☕️' },
   { type: 'text', content: '¡Viva Kubit!' },
+
+  // Kubit branding images
   { type: 'image', content: 'kubit_logo', alt: 'Kubit Logo' },
   { type: 'image', content: 'kubit_love', alt: 'Kubit Love' }
 ] as const;
 
 /**
- * Main Kubito animation walker class
+ * Main Kubito animation controller class
+ *
+ * Manages all aspects of Kubito's behavior including:
+ * - Smooth walking animation with boundary detection
+ * - Interactive jump responses to user clicks
+ * - Random message display system
+ * - State management for all animations
+ * - Performance optimization with RAF cleanup
  */
 class KubitoWalker implements IKubitoAnimator, IAnimationState {
-  public position = 0;
-  public direction = 1; // 1 for right, -1 for left
-  public speed = KUBITO_CONFIG.SPEED;
-  public animationId: number | null = null;
-  public isPaused = false;
-  public isJumping = false;
-  public isShowingMessage = false;
-  public messageInterval: number | null = null;
-  public hasAdjustedDirectionForMessage = false;
-  public jumpStartTime: number | null = null;
-  public jumpCompleted = false;
+  // Animation state properties
+  public position = 0; // Current X position
+  public direction = 1; // Movement direction (1=right, -1=left)
+  public speed = KUBITO_CONFIG.SPEED; // Current movement speed
+  public animationId: number | null = null; // RAF ID for cleanup
+  public isPaused = false; // Paused state flag
+  public isJumping = false; // Jump animation active
+  public isShowingMessage = false; // Message display active
+  public messageInterval: number | null = null; // Message timer ID
+  public hasAdjustedDirectionForMessage = false; // Direction change guard
+  public jumpStartTime: number | null = null; // Jump timing tracker
+  public jumpCompleted = false; // Jump completion guard
 
   public readonly kubito: HTMLImageElement;
   public readonly container: HTMLElement;
 
+  /**
+   * Initialize the Kubito walker with DOM elements and event handlers
+   * Sets up all necessary systems for animation and interaction
+   */
   constructor() {
     const kubitoElement = document.getElementById('kubito');
     const containerElement = document.getElementById('container');
 
+    // Validate required DOM elements exist
     if (!kubitoElement || !containerElement) {
-      throw new Error('Required DOM elements not found');
+      throw new Error('Required DOM elements (kubito, container) not found');
     }
 
     this.kubito = kubitoElement as HTMLImageElement;
     this.container = containerElement as HTMLElement;
 
+    // Initialize all subsystems
     this.setupEventListeners();
     this.setupRandomMessages();
     this.setupDynamicHeight();
   }
 
   /**
-   * Setup dynamic height adjustment for webview
+   * Setup dynamic height adjustment for responsive webview layout
+   * Ensures Kubito always has the full available space to move around
    */
   private setupDynamicHeight(): void {
     const adjustHeight = (): void => {
       const windowHeight = window.innerHeight;
 
-      // Force container to use full available height
+      // Set container to use full available viewport height
+      // This ensures Kubito can move through the entire visible area
       this.container.style.height = windowHeight + 'px';
       document.body.style.height = windowHeight + 'px';
       document.documentElement.style.height = windowHeight + 'px';
     };
 
-    // Adjust on load
+    // Initial height adjustment
     adjustHeight();
 
     // Adjust on resize

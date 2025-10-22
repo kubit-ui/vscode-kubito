@@ -1,18 +1,20 @@
 import * as vscode from 'vscode';
 
 /**
- * Interface for the Kubito webview provider
+ * Interface for the Kubito webview provider that extends VS Code's WebviewViewProvider
+ * This interface ensures proper typing for our webview implementation
  */
 interface IKubitoWebviewProvider extends vscode.WebviewViewProvider {
   resolveWebviewView(
-    webviewView: vscode.WebviewView,
-    context: vscode.WebviewViewResolveContext,
-    token: vscode.CancellationToken
+    _webviewView: vscode.WebviewView,
+    _context: vscode.WebviewViewResolveContext,
+    _token: vscode.CancellationToken
   ): void | Promise<void>;
 }
 
 /**
- * Main extension context and provider
+ * Global reference to the Kubito webview provider instance
+ * Used to manage the extension's lifecycle and webview state
  */
 let kubitoWebviewProvider: KubitoWebviewProvider | undefined;
 
@@ -37,24 +39,32 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 /**
- * Register all extension commands
- * @param context - VS Code extension context
+ * Register all extension commands with proper error handling
+ * @param context - VS Code extension context for managing command lifecycle
  */
 function registerCommands(context: vscode.ExtensionContext): void {
-  // Command to show kubito (focuses the view)
+  // Command to show Kubito by focusing the webview
   const showKubitoCommand = vscode.commands.registerCommand(
     'kubito.show',
     async (): Promise<void> => {
-      await vscode.commands.executeCommand('kubito.focus');
+      try {
+        await vscode.commands.executeCommand('kubito.focus');
+      } catch (error) {
+        // Log error without using console in production
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        void vscode.window.showErrorMessage(`Failed to show Kubito: ${errorMessage}`);
+      }
     }
   );
 
-  // Command to hide kubito (provides instructions for manual collapse)
+  // Command to provide instructions for hiding Kubito
+  // Note: Webview panels cannot be programmatically hidden, only collapsed manually
   const hideKubitoCommand = vscode.commands.registerCommand(
     'kubito.hide',
     async (): Promise<void> => {
       void vscode.window.showInformationMessage(
-        'You can collapse the Kubito section manually in the Explorer!'
+        'You can collapse the Kubito section manually in the Explorer panel!',
+        'Got it'
       );
     }
   );
@@ -63,36 +73,46 @@ function registerCommands(context: vscode.ExtensionContext): void {
 }
 
 /**
- * Auto-show Kubito if the setting is enabled
+ * Auto-show Kubito if the user setting is enabled
+ * Uses a small delay to ensure VS Code is fully initialized
  */
 async function autoShowKubito(): Promise<void> {
-  // Small delay to ensure everything is initialized
+  // Delay to ensure VS Code workspace and views are properly initialized
   setTimeout(async (): Promise<void> => {
-    const config = vscode.workspace.getConfiguration('kubito');
-    const autoShow = config.get<boolean>('autoShow', true) as boolean;
+    try {
+      const config = vscode.workspace.getConfiguration('kubito');
+      const autoShow = config.get<boolean>('autoShow', true) as boolean;
 
-    if (autoShow) {
-      await vscode.commands.executeCommand('kubito.show');
+      if (autoShow) {
+        await vscode.commands.executeCommand('kubito.show');
+      }
+    } catch {
+      // Silently fail for auto-show to avoid disrupting user experience
+      // The user can manually show Kubito using the command
     }
   }, 500);
 }
 
 /**
- * Webview provider implementation for Kubito
+ * Webview provider implementation for Kubito companion
+ * Manages the lifecycle and content of the Kubito webview panel
  */
 class KubitoWebviewProvider implements IKubitoWebviewProvider {
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly _context: vscode.ExtensionContext) {}
 
   /**
-   * Resolve the webview view when it's shown
-   * @param webviewView - The webview view instance
+   * Resolve the webview view when it becomes visible
+   * This method is called by VS Code when the webview needs to be displayed
+   * @param webviewView - The webview view instance provided by VS Code
    */
   resolveWebviewView(webviewView: vscode.WebviewView): void {
+    // Configure webview security and resource access
     webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')]
+      enableScripts: true, // Allow JavaScript execution for animations
+      localResourceRoots: [vscode.Uri.joinPath(this._context.extensionUri, 'media')]
     };
 
+    // Set the HTML content for the webview
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
   }
 
@@ -132,19 +152,25 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
   }
 
   /**
-   * Get all resource URIs for the webview
-   * @param webview - The webview instance
-   * @returns Object containing all resource URIs
+   * Get all media resource URIs converted for webview usage
+   * Converts local file URIs to webview-compatible URIs for security
+   * @param webview - The webview instance for URI conversion
+   * @returns Record containing all media resource URIs
    */
   private getResourceUris(webview: vscode.Webview): Record<string, vscode.Uri> {
-    const mediaPath = vscode.Uri.joinPath(this.context.extensionUri, 'media');
+    const mediaPath = vscode.Uri.joinPath(this._context.extensionUri, 'media');
 
     return {
+      // Kubito animation assets
       walkingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_walking.gif')),
       jumpingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_jumping.gif')),
       idlePng: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_idle.png')),
+
+      // Styles and scripts
       css: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.css')),
       js: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.js')),
+
+      // Kubit branding assets
       logo: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit_logo.png')),
       love: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit_love.png'))
     };
@@ -153,9 +179,11 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
 
 /**
  * Extension deactivation function
+ * Called when the extension is being deactivated
+ * Performs cleanup of resources and references
  */
 export function deactivate(): void {
-  // Cleanup if needed
+  // Clean up global references to prevent memory leaks
   if (kubitoWebviewProvider) {
     kubitoWebviewProvider = undefined;
   }
