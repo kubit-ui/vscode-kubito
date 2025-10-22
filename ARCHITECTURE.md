@@ -34,17 +34,20 @@ out/                     # Compiled extension files
 
 ### **2. Kubito Walker (`src/webview/kubito.ts`)**
 
-- **Animation Engine**: Handles movement, direction changes, and sprite switching
+- **Animation Engine**: Handles movement, direction changes, and sprite
+  switching
 - **Interaction System**: Click-to-jump functionality with priority handling
 - **Message System**: Random messages that intelligently follow Kubito
-- **Collision Detection**: Smart direction changes to avoid message-edge collisions
+- **Collision Detection**: Smart direction changes to avoid message-edge
+  collisions
 - **State Management**: Handles jumping, idle, walking, and messaging states
 
 ### **3. Message System**
 
 - **Auto-generation**: Messages appear every 5-10 seconds
 - **Dynamic Following**: Speech bubbles follow Kubito as he moves
-- **Smart Positioning**: Messages trigger direction changes to avoid edge collisions
+- **Smart Positioning**: Messages trigger direction changes to avoid edge
+  collisions
 - **Priority Handling**: Jump interactions cancel active messages
 - **Content Types**: Emojis, text, and custom Kubit team images
 
