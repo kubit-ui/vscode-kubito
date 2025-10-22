@@ -1,0 +1,78 @@
+# Dependencies
+node_modules/
+.editorconfig
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+out/
+dist/
+*.vsix
+*.tgz
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.vscode-test/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.DS_Store?
+
+# Compiled JavaScript (should be generated, not committed)
+# Compiled webview assets
+media/kubito.js
+media/kubito.js.map
+*.js.map
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Cache
+.npm
+.eslintcache
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.coverage/
+*.lcov
+.nyc_output
+
+# Temporary folders
+tmp/
+temp/
+
+# Environment variables
+.env
+.env.test
+.env.local
+.env.production
+
+# Test artifacts
+test-results.xml
+
+# Generated files
+*.d.ts.map
+*.js.map
