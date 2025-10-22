@@ -74,7 +74,7 @@ jobs:
             yarn install
           fi
 
-      - name: Validate extension integrity
+      - name: Validate package.json
         if: steps.validate-branch.outputs.should_publish == 'true'
         run: |
           # Verify that package.json is well-formed
@@ -82,14 +82,6 @@ jobs:
           PUBLISHER=$(node -p "require('./package.json').publisher")
           echo "Extension name: $EXTENSION_NAME"
           echo "Publisher: $PUBLISHER"
-
-          # Verify main entry point exists  
-          MAIN_FILE=$(node -p "require('./package.json').main")
-          if [ ! -f "$MAIN_FILE" ]; then
-            echo "Main file $MAIN_FILE does not exist"
-            exit 1
-          fi
-          echo "Main file exists: $MAIN_FILE"
 
       - name: Configure Git
         if: steps.validate-branch.outputs.should_publish == 'true'
@@ -204,7 +196,19 @@ jobs:
       - name: Build extension
         if: steps.validate-branch.outputs.should_publish == 'true'
         run: |
+          yarn run clean
           yarn run compile
+
+      - name: Validate extension integrity
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          # Verify main entry point exists after compilation
+          MAIN_FILE=$(node -p "require('./package.json').main")
+          if [ ! -f "$MAIN_FILE" ]; then
+            echo "Main file $MAIN_FILE does not exist after compilation"
+            exit 1
+          fi
+          echo "Main file exists: $MAIN_FILE"
 
       - name: Update version and commit
         if: steps.validate-branch.outputs.should_publish == 'true'
