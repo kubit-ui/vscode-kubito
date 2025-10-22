@@ -12,7 +12,6 @@ out/
 dist/
 *.vsix
 *.tgz
-.vscodeignore
 
 # IDE files
 .vscode/settings.json
