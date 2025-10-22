@@ -1,0 +1,443 @@
+name: Auto Publish Extension
+
+# This workflow automatically publishes the VS Code extension to the marketplace
+# It runs when PRs are merged and analyzes the PR content to determine version bump
+#
+# Required secrets:
+# 1. VSCE_PAT: Visual Studio Marketplace Personal Access Token
+#    - Go to https://dev.azure.com/
+#    - Create a Personal Access Token with "Marketplace > Manage" permissions
+#
+# 2. RELEASE_TOKEN: GitHub Personal Access Token for bypassing branch protection
+#    - Go to github.com → Settings → Developer settings → Personal access tokens
+#    - Generate a "Classic" token with "repo" and "workflow" permissions
+#    - OR use Fine-grained PAT with "Contents: write" and "Pull requests: write"
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - cms
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  actions: read
+
+jobs:
+  auto-publish:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    name: Auto Publish to VS Code Marketplace
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate branch patterns
+        id: validate-branch
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          echo "Branch name: $BRANCH_NAME"
+
+          # Simplified pattern that properly handles hyphens, underscores, and dots
+          if [[ "$BRANCH_NAME" =~ ^(feat|feature|fix|bugfix|break|breaking|hotfix|chore)/[a-zA-Z0-9._-]+$ ]]; then
+            echo "Branch pattern accepted: $BRANCH_NAME"
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo "Branch '$BRANCH_NAME' doesn't match required patterns"
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Yarn and install dependencies
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          corepack enable
+          yarn --version
+
+          # Install dependencies
+          if [ -f "yarn.lock" ]; then
+            echo "Installing with frozen lockfile"
+            yarn install --frozen-lockfile --prefer-offline
+          else
+            echo "Running fresh install"
+            yarn install
+          fi
+
+      - name: Validate extension integrity
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          # Verify that package.json is well-formed
+          EXTENSION_NAME=$(node -p "require('./package.json').name")
+          PUBLISHER=$(node -p "require('./package.json').publisher")
+          echo "Extension name: $EXTENSION_NAME"
+          echo "Publisher: $PUBLISHER"
+
+          # Verify main entry point exists  
+          MAIN_FILE=$(node -p "require('./package.json').main")
+          if [ ! -f "$MAIN_FILE" ]; then
+            echo "Main file $MAIN_FILE does not exist"
+            exit 1
+          fi
+          echo "Main file exists: $MAIN_FILE"
+
+      - name: Configure Git
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          # Configure git with release token for branch protection bypass
+          git config --local user.email "kubito-bot@github.com"
+          git config --local user.name "Kubito Release Bot"
+
+          # Set up authentication for push operations
+          if [ -n "${{ secrets.RELEASE_TOKEN }}" ]; then
+            echo "Using RELEASE_TOKEN with branch protection bypass permissions"
+            git remote set-url origin https://x-access-token:${{ secrets.RELEASE_TOKEN }}@github.com/${{ github.repository }}.git
+          else
+            echo "Using default GITHUB_TOKEN - may fail on protected branches"
+            echo "Add RELEASE_TOKEN secret with 'Contents: write' and 'Pull requests: write' permissions"
+          fi
+
+      - name: Determine version bump
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        id: version-bump
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          echo "Analyzing PR for version bump..."
+          echo "Branch: $BRANCH_NAME"
+          echo "Title: $PR_TITLE"
+
+          # 1. Check explicit breaking change markers
+          if echo "$PR_BODY" | grep -qi "BREAKING CHANGE:" || \
+             echo "$PR_TITLE" | grep -q "!" || \
+             echo "$PR_TITLE" | grep -qi "\[breaking\]" || \
+             [[ $BRANCH_NAME =~ ^break/ ]] || \
+             [[ $BRANCH_NAME =~ ^breaking/ ]]; then
+            VERSION_TYPE="major"
+            REASON="Breaking change detected"
+            echo "MAJOR: $REASON"
+
+          # 2. Check conventional commits in title
+          elif echo "$PR_TITLE" | grep -Eq "^(feat|feature)(\(.+\))?!:" || \
+               echo "$PR_TITLE" | grep -Eq "^(fix|bugfix)(\(.+\))?!:"; then
+            VERSION_TYPE="major"
+            REASON="Breaking change in conventional commit"
+            echo "MAJOR: $REASON"
+
+          # 3. Check features (minor)
+          elif echo "$PR_TITLE" | grep -Eq "^(feat|feature)(\(.+\))?:" || \
+               [[ $BRANCH_NAME =~ ^feat/ ]] || \
+               [[ $BRANCH_NAME =~ ^feature/ ]] || \
+               echo "$PR_TITLE" | grep -qi "\[feature\]"; then
+            VERSION_TYPE="minor"
+            REASON="New feature detected"
+            echo "MINOR: $REASON"
+
+          # 4. Check fixes and other changes (patch)
+          else
+            VERSION_TYPE="patch"
+            REASON="Bug fix or other changes"
+            echo "PATCH: $REASON"
+          fi
+
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Calculate new version
+          NEW_VERSION=$(node -e "
+            const current = '$CURRENT_VERSION';
+            const type = '$VERSION_TYPE';
+            const parts = current.split('.').map(Number);
+            
+            if (type === 'major') {
+              parts[0]++;
+              parts[1] = 0;
+              parts[2] = 0;
+            } else if (type === 'minor') {
+              parts[1]++;
+              parts[2] = 0;
+            } else {
+              parts[2]++;
+            }
+            
+            console.log(parts.join('.'));
+          ")
+
+          echo "New version will be: $NEW_VERSION"
+          echo "Decision reason: $REASON"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+          echo "reason=$REASON" >> $GITHUB_OUTPUT
+
+      - name: Check if version already exists
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
+
+          # Check if tag already exists
+          if git tag -l | grep -q "^v$NEW_VERSION$"; then
+            echo "Tag v$NEW_VERSION already exists"
+            exit 1
+          fi
+
+      - name: Run tests
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          yarn run lint
+          yarn run format:check
+          yarn run test
+
+      - name: Build extension
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          yarn run compile
+
+      - name: Update version and commit
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
+          VERSION_TYPE="${{ steps.version-bump.outputs.version_type }}"
+          BRANCH_NAME="${{ steps.validate-branch.outputs.branch_name }}"
+          REASON="${{ steps.version-bump.outputs.reason }}"
+
+          # Update package.json
+          npm version $NEW_VERSION --no-git-tag-version
+
+          # Commit and tag
+          git add package.json
+          # Add lock file if it exists
+          if [ -f "yarn.lock" ]; then
+            git add yarn.lock
+          fi
+          git commit -m "chore(release): $NEW_VERSION
+
+          Released from: $BRANCH_NAME
+          Type: $VERSION_TYPE
+          Reason: $REASON
+
+          [skip ci]"
+
+          git tag "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+
+      - name: Package extension
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        run: |
+          yarn run package
+
+      - name: Publish to VS Code Marketplace
+        if: steps.validate-branch.outputs.should_publish == 'true'
+        id: marketplace-publish
+        run: |
+          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
+          VERSION_TYPE="${{ steps.version-bump.outputs.version_type }}"
+
+          echo "Publishing to VS Code Marketplace..."
+
+          yarn run publish --pat ${{ secrets.VSCE_PAT }}
+
+          echo "Successfully published to VS Code Marketplace"
+          echo "published=true" >> $GITHUB_OUTPUT
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Push changes and tags
+        if: steps.marketplace-publish.outputs.published == 'true'
+        run: |
+          echo "Pushing changes to repository..."
+
+          if [ -n "${{ secrets.RELEASE_TOKEN }}" ]; then
+            echo "Using RELEASE_TOKEN to bypass branch protection"
+            git push origin cms
+            git push origin --tags
+            echo "Changes and tags pushed successfully to cms"
+          else
+            echo "Using GITHUB_TOKEN - attempting push (may fail on protected branches)"
+            if git push origin cms && git push origin --tags; then
+              echo "Changes and tags pushed successfully"
+            else
+              echo "Push failed - likely due to branch protection rules"
+              echo "Consider adding RELEASE_TOKEN secret with bypass permissions"
+              exit 1
+            fi
+          fi
+
+      - name: Upload VSIX as artifact
+        if: steps.marketplace-publish.outputs.published == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-kubito-${{ steps.version-bump.outputs.new_version }}
+          path: '*.vsix'
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: steps.marketplace-publish.outputs.published == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version-bump.outputs.new_version }}
+          name: Release v${{ steps.version-bump.outputs.new_version }}
+          body: |
+            ## 🚀 Release v${{ steps.version-bump.outputs.new_version }}
+
+            **Type:** ${{ steps.version-bump.outputs.version_type }} release
+            **Branch:** `${{ steps.validate-branch.outputs.branch_name }}`
+            **Previous:** `${{ steps.version-bump.outputs.current_version }}`
+
+            ### 📝 Changes
+            - ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})
+
+            ### 📦 Installation
+            Search for "Kubito" in the VS Code Extensions marketplace or install via:
+            ```bash
+            code --install-extension Kubit.vscode-kubito
+            ```
+
+            ### 🔧 Usage
+            After installation, Kubito will appear in your VS Code sidebar. You can:
+            - Show/hide Kubito using the command palette
+            - Configure auto-show behavior in settings
+            - Enjoy your coding companion!
+
+            ### 🔗 Links
+            - [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Kubit.vscode-kubito)
+            - [Full Changelog](https://github.com/${{ github.repository }}/compare/v${{ steps.version-bump.outputs.current_version }}...v${{ steps.version-bump.outputs.new_version }})
+          files: '*.vsix'
+          draft: false
+          prerelease: ${{ steps.version-bump.outputs.version_type == 'major' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Success notification
+        if: steps.marketplace-publish.outputs.published == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { version_type, new_version, current_version } = {
+              version_type: '${{ steps.version-bump.outputs.version_type }}',
+              new_version: '${{ steps.version-bump.outputs.new_version }}',
+              current_version: '${{ steps.version-bump.outputs.current_version }}'
+            };
+            const branchName = '${{ steps.validate-branch.outputs.branch_name }}';
+
+            const emoji = version_type === 'major' ? '💥' : version_type === 'minor' ? '✨' : '🐛';
+
+            const comment = `## ${emoji} Auto-publish Successful!
+
+            | Field | Value |
+            |-------|-------|
+            | **Branch** | \`${branchName}\` |
+            | **Type** | \`${version_type}\` |
+            | **Version** | \`${current_version}\` → \`${new_version}\` |
+            | **Marketplace** | [Kubito v${new_version}](https://marketplace.visualstudio.com/items?itemName=Kubit.vscode-kubito) |
+
+            ### 📦 Installation
+            \`\`\`bash
+            # Via VS Code Extensions marketplace
+            # Search for "Kubito" or install via CLI:
+            code --install-extension Kubit.vscode-kubito
+            \`\`\`
+
+            ### 🎮 Usage
+            After installation, Kubito will appear in your VS Code sidebar as your coding companion!
+
+            ### ✅ Completed Steps
+            - [x] Extension integrity validated
+            - [x] Published to VS Code Marketplace
+            - [x] GitHub release created
+            - [x] Repository tagged
+
+            🎉 **Ready to install and use!**`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Failure notification
+        if: failure() && steps.validate-branch.outputs.should_publish == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## ❌ Auto-publish Failed
+
+            The automatic publication process failed. Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+            ### 🔧 Common Solutions
+            - **VSCE Token**: Verify VSCE_PAT is valid and has marketplace publish permissions
+            - **Release Token**: Add RELEASE_TOKEN secret to bypass branch protection rules
+            - **Token Permissions**: Check that tokens have correct permissions
+            - **Version Conflict**: Check if version already exists in marketplace
+            - **Extension Issues**: Ensure package.json and main file are valid
+
+            ### 🔐 Required Secrets Configuration
+            1. **VSCE_PAT**: 
+               - Type: Visual Studio Marketplace Personal Access Token
+               - Scope: "Marketplace > Manage" permissions
+               - URL: https://dev.azure.com/
+
+            2. **RELEASE_TOKEN** (Required for protected branches):
+               - Type: Personal Access Token with bypass permissions
+               - Permissions: "Contents: write", "Pull requests: write"
+               - Special: "Bypass pull request requirements" if needed
+
+            ### 📞 Next Steps
+            1. **Marketplace Issues**: Verify VSCE_PAT token and permissions
+            2. **Branch Protection**: Add RELEASE_TOKEN secret with bypass permissions
+            3. **Logs**: Check error logs for specific authentication issues
+            4. **Manual Process**: Use the manual publish workflow if tokens can't be configured`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Skip notification
+        if: steps.validate-branch.outputs.should_publish == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = '${{ github.event.pull_request.head.ref }}';
+
+            const comment = `## ℹ️ Auto-publish Skipped
+
+            Branch \`${branchName}\` doesn't match required patterns for auto-publishing.
+
+            ### 📋 Required Patterns
+            | Pattern | Version Bump | Detection Method |
+            |---------|--------------|------------------|
+            | \`feat/\*\` or \`feature/\*\` | **minor** | Branch prefix or PR title |
+            | \`fix/\*\` or \`bugfix/\*\` | **patch** | Branch prefix or default |
+            | \`break/\*\` or \`breaking/\*\` | **major** | Branch prefix |
+            | \`hotfix/\*\` or \`chore/\*\` | **patch** | Branch prefix |
+
+            ### 🎯 Advanced Version Detection
+            - **MAJOR**: \`BREAKING CHANGE:\` in PR body, \`!\` in title, or \`[breaking]\` tag
+            - **MINOR**: \`feat:\` or \`feature:\` in PR title, or \`[feature]\` tag
+            - **PATCH**: Default for fixes and other changes
+
+            ### 🚀 To Auto-publish
+            Create a new PR from a branch with the appropriate prefix, or use the [manual publish workflow](https://github.com/${{ github.repository }}/actions/workflows/manual-publish.yml).`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -1,0 +1,122 @@
+body {
+  margin: 0;
+  padding: 4px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#container {
+  position: relative;
+  width: 100%;
+  height: 100px;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background-color: var(--vscode-editor-background);
+}
+
+#kubito {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  transition: filter 0.3s ease;
+  z-index: 999;
+  cursor: pointer;
+}
+
+#kubito:hover {
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.walking-right {
+  transform: scaleX(1);
+}
+
+.walking-left {
+  transform: scaleX(-1);
+}
+
+/* Speech Bubble Styles */
+.speech-bubble {
+  position: absolute;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-editor-foreground);
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+  animation: bubbleAppear 0.3s ease-out;
+  text-align: center;
+  min-width: fit-content;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--vscode-editor-background);
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--vscode-panel-border);
+  z-index: -1;
+}
+
+@keyframes bubbleAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bubbleDisappear {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.9);
+  }
+}
+
+/* Long message specific styles */
+.speech-bubble.long-message {
+  max-width: 80%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Ensure proper positioning for multi-line messages */
+.speech-bubble.long-message::after,
+.speech-bubble.long-message::before {
+  left: 50%;
+  transform: translateX(-50%);
+}

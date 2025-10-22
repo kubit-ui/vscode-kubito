@@ -1,0 +1,103 @@
+{
+  "name": "vscode-kubito",
+  "displayName": "Kubito",
+  "description": "A Kubit friend for your VS Code editor",
+  "version": "0.1.0",
+  "publisher": "Kubit",
+  "author": {
+    "name": "Kubit"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kubit-ui/vscode-kubito.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kubit-ui/vscode-kubito/issues"
+  },
+  "homepage": "https://github.com/kubit-ui/vscode-kubito#readme",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.74.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "pet",
+    "companion",
+    "kubito",
+    "kubit",
+    "fun",
+    "interactive"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "icon": "icon.png",
+          "id": "kubito",
+          "name": "Kubito",
+          "type": "webview",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "kubito.show",
+        "title": "Show Kubito"
+      },
+      {
+        "command": "kubito.hide",
+        "title": "Hide Kubito"
+      }
+    ],
+    "configuration": {
+      "title": "Kubito",
+      "properties": {
+        "kubito.autoShow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show Kubito when opening VS Code"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "npm run compile:extension && npm run compile:webview",
+    "compile:extension": "tsc -p ./",
+    "compile:webview": "tsc -p ./src/webview/",
+    "watch": "npm run watch:extension & npm run watch:webview",
+    "watch:extension": "tsc -watch -p ./",
+    "watch:webview": "tsc -watch -p ./src/webview/",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "clean": "rm -rf out"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.0.0",
+    "glob": "^11.0.3",
+    "mocha": "^10.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}
