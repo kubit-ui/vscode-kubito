@@ -233,10 +233,7 @@ jobs:
 
           # Commit and tag
           git add package.json
-          # Add lock file if it exists
-          if [ -f "yarn.lock" ]; then
-            git add yarn.lock
-          fi
+          # Note: yarn.lock is intentionally ignored in .gitignore, so we don't add it
           git commit -m "chore(release): $NEW_VERSION
 
           Released from: $BRANCH_NAME
