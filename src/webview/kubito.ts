@@ -8,9 +8,28 @@
  * - Smooth walking animation with boundary detection
  * - Click-to-jump interaction with proper state management
  * - Random motivational messages with emoji support
+ * - Multi-language support with automatic VS Code language detection
  * - Responsive to container size changes
  * - Optimized performance with requestAnimationFrame
  */
+
+/**
+ * Webview localization system
+ * Gets translations from window object injected by extension backend
+ */
+function getWebviewTranslation(key: string): string {
+  // Get translations from window object or use defaults
+  const translations = (window as any).kubitoTranslations || {
+    sleeping: 'Zzz...',
+    letsCoding: "Let's code! 🚀",
+    coffee: 'Coffee? ☕️',
+    vivaKubit: 'Viva Kubit!',
+    kubitLogo: 'Kubit Logo',
+    kubitLove: 'Kubit Love'
+  };
+
+  return translations[key] || key;
+}
 
 /**
  * Message type definitions for Kubito's communication system
@@ -85,30 +104,127 @@ const MESSAGE_CONFIG = {
 } as const;
 
 /**
- * Pre-defined messages that Kubito can randomly display
+ * Gets localized messages that Kubito can randomly display
  * Mix of emojis, text, and branded images for variety and engagement
  */
-const KUBITO_MESSAGES: readonly IMessage[] = [
-  // Expressive emojis
-  { type: 'emoji', content: '🤓' },
-  { type: 'emoji', content: '😎' },
-  { type: 'emoji', content: '🙃' },
-  { type: 'emoji', content: '🤡' },
-  { type: 'emoji', content: '👋' },
-  { type: 'emoji', content: '⁉️' },
-  { type: 'emoji', content: '❤️' },
-  { type: 'emoji', content: '🚫 🐛' },
+function getLocalizedMessages(): readonly IMessage[] {
+  return [
+    // Expressive emojis (universal)
+    { type: 'emoji', content: '🤓' },
+    { type: 'emoji', content: '😎' },
+    { type: 'emoji', content: '🙃' },
+    { type: 'emoji', content: '🤡' },
+    { type: 'emoji', content: '👋' },
+    { type: 'emoji', content: '⁉️' },
+    { type: 'emoji', content: '❤️' },
+    { type: 'emoji', content: '🚫 🐛' },
+    { type: 'emoji', content: '🚀' },
+    { type: 'emoji', content: '💻' },
+    { type: 'emoji', content: '🔥' },
+    { type: 'emoji', content: '✨' },
+    { type: 'emoji', content: '🎯' },
+    { type: 'emoji', content: '🧙‍♂️' },
+    { type: 'emoji', content: '🦆' },
+    { type: 'emoji', content: '🥷' },
+    { type: 'emoji', content: '🤖' },
+    { type: 'emoji', content: '🐍' },
+    { type: 'emoji', content: '☁️' },
+    { type: 'emoji', content: '⚛️' },
 
-  // Motivational and fun text messages
-  { type: 'text', content: 'Zzz...' },
-  { type: 'text', content: '¡A programar! 🚀' },
-  { type: 'text', content: '¿Un café? ☕️' },
-  { type: 'text', content: '¡Viva Kubit!' },
+    // Basic localized messages
+    { type: 'text', content: getWebviewTranslation('sleeping') },
+    { type: 'text', content: getWebviewTranslation('letsCoding') },
+    { type: 'text', content: getWebviewTranslation('coffee') },
+    { type: 'text', content: getWebviewTranslation('vivaKubit') },
 
-  // Kubit branding images
-  { type: 'image', content: 'kubit_logo', alt: 'Kubit Logo' },
-  { type: 'image', content: 'kubit_love', alt: 'Kubit Love' }
-] as const;
+    // Programming fun messages
+    { type: 'text', content: getWebviewTranslation('debugTime') },
+    { type: 'text', content: getWebviewTranslation('noMoreBugs') },
+    { type: 'text', content: getWebviewTranslation('commitTime') },
+    { type: 'text', content: getWebviewTranslation('syntaxError') },
+    { type: 'text', content: getWebviewTranslation('workingLate') },
+    { type: 'text', content: getWebviewTranslation('mondayBlues') },
+    { type: 'text', content: getWebviewTranslation('fridayFeeling') },
+    { type: 'text', content: getWebviewTranslation('stackOverflow') },
+    { type: 'text', content: getWebviewTranslation('gitPush') },
+    { type: 'text', content: getWebviewTranslation('dockerizing') },
+
+    // Motivational messages
+    { type: 'text', content: getWebviewTranslation('keepCoding') },
+    { type: 'text', content: getWebviewTranslation('almostThere') },
+    { type: 'text', content: getWebviewTranslation('greatCode') },
+    { type: 'text', content: getWebviewTranslation('refactorTime') },
+    { type: 'text', content: getWebviewTranslation('testsPassing') },
+    { type: 'text', content: getWebviewTranslation('cleanCode') },
+    { type: 'text', content: getWebviewTranslation('oneMoreBug') },
+    { type: 'text', content: getWebviewTranslation('fullStack') },
+    { type: 'text', content: getWebviewTranslation('deployFriday') },
+
+    // Programming jargon
+    { type: 'text', content: getWebviewTranslation('helloWorld') },
+    { type: 'text', content: getWebviewTranslation('infiniteLoop') },
+    { type: 'text', content: getWebviewTranslation('nullPointer') },
+    { type: 'text', content: getWebviewTranslation('recursion') },
+    { type: 'text', content: getWebviewTranslation('leetCode') },
+    { type: 'text', content: getWebviewTranslation('algorithm') },
+    { type: 'text', content: getWebviewTranslation('bigO') },
+    { type: 'text', content: getWebviewTranslation('asyncAwait') },
+    { type: 'text', content: getWebviewTranslation('callback') },
+    { type: 'text', content: getWebviewTranslation('promise') },
+
+    // Mood messages
+    { type: 'text', content: getWebviewTranslation('caffeinated') },
+    { type: 'text', content: getWebviewTranslation('tired') },
+    { type: 'text', content: getWebviewTranslation('eureka') },
+    { type: 'text', content: getWebviewTranslation('frustrated') },
+    { type: 'text', content: getWebviewTranslation('productive') },
+    { type: 'text', content: getWebviewTranslation('procrastinating') },
+    { type: 'text', content: getWebviewTranslation('inspired') },
+    { type: 'text', content: getWebviewTranslation('rubberDuck') },
+    { type: 'text', content: getWebviewTranslation('imposter') },
+    { type: 'text', content: getWebviewTranslation('genius') },
+
+    // Tech and tools
+    { type: 'text', content: getWebviewTranslation('reactTime') },
+    { type: 'text', content: getWebviewTranslation('nodeJs') },
+    { type: 'text', content: getWebviewTranslation('python') },
+    { type: 'text', content: getWebviewTranslation('javascript') },
+    { type: 'text', content: getWebviewTranslation('typescript') },
+    { type: 'text', content: getWebviewTranslation('cssLife') },
+    { type: 'text', content: getWebviewTranslation('htmlBasic') },
+    { type: 'text', content: getWebviewTranslation('gitMerge') },
+    { type: 'text', content: getWebviewTranslation('vscode') },
+    { type: 'text', content: getWebviewTranslation('terminal') },
+
+    // Time/schedule messages
+    { type: 'text', content: getWebviewTranslation('lunchTime') },
+    { type: 'text', content: getWebviewTranslation('breakTime') },
+    { type: 'text', content: getWebviewTranslation('overtime') },
+    { type: 'text', content: getWebviewTranslation('earlyBird') },
+    { type: 'text', content: getWebviewTranslation('nightOwl') },
+    { type: 'text', content: getWebviewTranslation('weekend') },
+    { type: 'text', content: getWebviewTranslation('vacation') },
+    { type: 'text', content: getWebviewTranslation('deadline') },
+    { type: 'text', content: getWebviewTranslation('crunchTime') },
+    { type: 'text', content: getWebviewTranslation('chillin') },
+
+    // Philosophical/funny messages
+    { type: 'text', content: getWebviewTranslation('existential') },
+    { type: 'text', content: getWebviewTranslation('matrix') },
+    { type: 'text', content: getWebviewTranslation('binary') },
+    { type: 'text', content: getWebviewTranslation('quantum') },
+    { type: 'text', content: getWebviewTranslation('artificial') },
+    { type: 'text', content: getWebviewTranslation('singularity') },
+    { type: 'text', content: getWebviewTranslation('metaverse') },
+    { type: 'text', content: getWebviewTranslation('blockchain') },
+    { type: 'text', content: getWebviewTranslation('cloud') },
+    { type: 'text', content: getWebviewTranslation('serverless') },
+
+    // Kubit branding images (localized alt text)
+    { type: 'image', content: 'kubit_logo', alt: getWebviewTranslation('kubitLogo') },
+    { type: 'image', content: 'kubit_love', alt: getWebviewTranslation('kubitLove') }
+  ] as const;
+}
 
 /**
  * Main Kubito animation controller class
@@ -380,11 +496,12 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Get a random message from the messages array
+   * Get a random message from the localized messages array
    */
   private getRandomMessage(): IMessage {
-    const randomIndex = Math.floor(Math.random() * KUBITO_MESSAGES.length);
-    return KUBITO_MESSAGES[randomIndex];
+    const messages = getLocalizedMessages();
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    return messages[randomIndex];
   }
 
   /**

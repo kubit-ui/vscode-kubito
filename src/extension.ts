@@ -1,4 +1,10 @@
 import * as vscode from 'vscode';
+import {
+  initializeLocalization,
+  t,
+  formatTranslation,
+  getCurrentTranslations
+} from './localization';
 
 /**
  * Interface for the Kubito webview provider that extends VS Code's WebviewViewProvider
@@ -23,6 +29,9 @@ let kubitoWebviewProvider: KubitoWebviewProvider | undefined;
  * @param context - VS Code extension context
  */
 export function activate(context: vscode.ExtensionContext): void {
+  // Initialize the localization system
+  initializeLocalization();
+
   // Create the webview provider for the Explorer view
   kubitoWebviewProvider = new KubitoWebviewProvider(context);
 
@@ -33,6 +42,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Register commands
   registerCommands(context);
+
+  // Listen for configuration changes
+  registerConfigurationListener(context);
 
   // Auto-show Kubito if configured
   void autoShowKubito();
@@ -52,7 +64,9 @@ function registerCommands(context: vscode.ExtensionContext): void {
       } catch (error) {
         // Log error without using console in production
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        void vscode.window.showErrorMessage(`Failed to show Kubito: ${errorMessage}`);
+        void vscode.window.showErrorMessage(
+          formatTranslation(t('notifications.showError'), { error: errorMessage })
+        );
       }
     }
   );
@@ -63,13 +77,32 @@ function registerCommands(context: vscode.ExtensionContext): void {
     'kubito.hide',
     async (): Promise<void> => {
       void vscode.window.showInformationMessage(
-        'You can collapse the Kubito section manually in the Explorer panel!',
-        'Got it'
+        t('notifications.hideInfo'),
+        t('notifications.hideConfirm')
       );
     }
   );
 
   context.subscriptions.push(showKubitoCommand, hideKubitoCommand);
+}
+
+/**
+ * Register configuration change listener to update language dynamically
+ * @param context - VS Code extension context for managing listener lifecycle
+ */
+function registerConfigurationListener(context: vscode.ExtensionContext): void {
+  const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
+    // Check if Kubito language configuration changed
+    if (event.affectsConfiguration('kubito.language')) {
+      // Re-initialize localization with new language
+      initializeLocalization();
+
+      // TODO: Refresh webview to apply new language
+      // This would require keeping a reference to the webview and updating its content
+    }
+  });
+
+  context.subscriptions.push(configChangeListener);
 }
 
 /**
@@ -145,6 +178,9 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
         window.kubitoWalkingUri = "${resourceUris.walkingGif}";
         window.kubitoJumpingUri = "${resourceUris.jumpingGif}";
         window.kubitoIdleUri = "${resourceUris.idlePng}";
+        
+        // Store translations to be used by the main script
+        window.kubitoTranslations = ${JSON.stringify(getCurrentTranslations().messages)};
     </script>
     <script src="${resourceUris.js}"></script>
 </body>

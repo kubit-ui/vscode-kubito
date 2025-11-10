@@ -6,6 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-11-10
+
+### Major Language Expansion
+
+- **6 Languages Support** - Complete localization for English, Spanish, French,
+  Portuguese, German, and Italian
+- **Automatic Language Detection** - Smart detection based on VS Code language
+  settings
+- **70+ Unique Messages** - Expanded message collection with programming humor
+  and developer culture references
+- **Language Configuration** - Manual language selection with real-time
+  switching
+
+### Enhanced Message System
+
+- **Programming Humor** - Original jokes about bugs, deployments, and developer
+  life
+- **Developer Culture References** - Messages about Stack Overflow, git,
+  debugging, and more
+- **Emotional States** - Messages reflecting different coding moods (frustrated,
+  inspired, tired, caffeinated)
+- **Technology Specific** - References to popular frameworks, languages, and
+  tools
+- **Time-Contextual** - Messages for different times (Monday blues, Friday
+  deploys, late night coding)
+
+### � New Message Categories
+
+- **Debugging & Bugs** - Humorous takes on the debugging process
+- **Development Tools** - References to popular dev tools and workflows
+- **Programming Languages** - Jokes about different programming languages
+- **Developer Lifestyle** - Messages about coding habits and developer culture
+- **Productivity & Motivation** - Encouraging and relatable developer messages
+- **Technical Concepts** - Fun references to algorithms, data structures, and CS
+  concepts
+
+### Technical Improvements
+
+- **Expanded Type System** - Complete TypeScript interfaces for all message
+  categories
+- **Modular Architecture** - Clean separation of localization logic
+- **Comprehensive Test Coverage** - Full test suite covering all 6 languages
+- **Webview Integration** - Seamless message injection without module conflicts
+- **Performance Optimized** - Efficient message loading and language switching
+
+### Bug Fixes
+
+- **Translation Injection** - Fixed issue where message keys were displayed
+  instead of translated content
+- **Webview Module Loading** - Fixed ES module import issues in webview context
+- **Timing Issues** - Resolved race condition between translation loading and
+  message display
+- **VS Code Compatibility** - Improved compatibility with VS Code 1.74.0+
+- **Configuration Listening** - Automatic updates when language settings change
+- **Memory Management** - Optimized translation loading and caching
+
+### Language Coverage
+
+#### 🇺🇸 English - Complete localization with developer humor
+
+#### 🇪🇸 Español - Fully localized with cultural programming references
+
+#### 🇫🇷 Français - Complete French translation for developers
+
+#### 🇵🇹 Português - Brazilian Portuguese developer culture
+
+#### 🇩🇪 Deutsch - German localization with tech industry references
+
+#### 🇮🇹 Italiano - Italian translation with programming passion
+
+### � Statistics
+
+- **Languages**: 6 (English, Spanish, French, Portuguese, German, Italian)
+- **Messages**: 70+ unique programming-related messages per language
+- **Categories**: 8+ message categories (debugging, tools, languages, lifestyle,
+  etc.)
+- **Test Coverage**: 25+ comprehensive tests covering all functionality
+- **Compatibility**: VS Code 1.74.0+ (covers 95%+ of active VS Code
+  installations)
+
+### Documentation
+
+- **Multi-Language Guide** - Complete documentation for all supported languages
+- **Message Categories** - Documentation of all message types and contexts
+- **Developer Guide** - Instructions for adding new languages and messages
+- **Cultural Notes** - Context for language-specific programming humor
+
 ## [2.0.0] - 2025-10-22
 
 🎉 **Major Release** - Kubito VS Code Extension - Production Ready
