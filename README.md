@@ -47,20 +47,10 @@ Access in: `Settings > Extensions > Kubito`
 - **Contextual Messages** → Show time and day-appropriate messages _(default:
   on)_
 
-## 🕐 Smart Contextual Messages
+## 🎬 Demo
 
-Kubito now shows messages that match your coding context:
-
-- **Monday Morning** 💙 → "Monday coding blues", "Let's code!", "Coffee?"
-- **Friday Afternoon** 🎉 → "Friday deploy!", "Friday feeling!", "Almost there!"
-- **Late Night Coding** 🌙 → "Working late night", "Need sleep...", "Coffee++"
-- **Weekend Sessions** 📅 → "Weekend coding?", "Side project time!",
-  "Procrastinating a bit..."
-- **General Times** → Morning motivation, afternoon productivity, evening
-  wind-down
-
-_Contextual messages can be disabled in settings if you prefer completely random
-messages._
+_Coming soon: Watch Kubito in action with a demo video showing all his cute
+animations and interactions!_
 
 ## 💡 Tips & Tricks
 
