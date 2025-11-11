@@ -111,7 +111,7 @@ jobs:
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
 
-          echo "Analyzing PR for version bump..."
+          echo "Analyzing PR for version bump"
           echo "Branch: $BRANCH_NAME"
           echo "Title: $PR_TITLE"
 
