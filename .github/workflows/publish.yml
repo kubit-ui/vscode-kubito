@@ -110,23 +110,21 @@ jobs:
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
 
           echo "Analyzing PR for version bump..."
           echo "Branch: $BRANCH_NAME"
           echo "Title: $PR_TITLE"
 
-          # 1. Check explicit breaking change markers
-          if echo "$PR_BODY" | grep -qi "BREAKING CHANGE:" || \
-             echo "$PR_TITLE" | grep -q "!" || \
+          # 1. Check for breaking changes in title or branch name only
+          if echo "$PR_TITLE" | grep -q "!" || \
              echo "$PR_TITLE" | grep -qi "\[breaking\]" || \
              [[ $BRANCH_NAME =~ ^break/ ]] || \
              [[ $BRANCH_NAME =~ ^breaking/ ]]; then
             VERSION_TYPE="major"
-            REASON="Breaking change detected"
+            REASON="Breaking change detected in title or branch"
             echo "MAJOR: $REASON"
 
-          # 2. Check conventional commits in title
+          # 2. Check conventional commits with breaking marker in title
           elif echo "$PR_TITLE" | grep -Eq "^(feat|feature)(\(.+\))?!:" || \
                echo "$PR_TITLE" | grep -Eq "^(fix|bugfix)(\(.+\))?!:"; then
             VERSION_TYPE="major"
@@ -439,8 +437,8 @@ jobs:
             | \`hotfix/\*\` or \`chore/\*\` | **patch** | Branch prefix |
 
             ### 🎯 Advanced Version Detection
-            - **MAJOR**: \`BREAKING CHANGE:\` in PR body, \`!\` in title, or \`[breaking]\` tag
-            - **MINOR**: \`feat:\` or \`feature:\` in PR title, or \`[feature]\` tag
+            - **MAJOR**: \`!\` in title, \`[breaking]\` tag, or \`break/\`/\`breaking/\` branch prefix
+            - **MINOR**: \`feat:\` or \`feature:\` in PR title, or \`feat/\`/\`feature/\` branch prefix
             - **PATCH**: Default for fixes and other changes
 
             ### 🚀 To Auto-publish
