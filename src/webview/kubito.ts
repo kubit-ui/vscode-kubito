@@ -8,9 +8,126 @@
  * - Smooth walking animation with boundary detection
  * - Click-to-jump interaction with proper state management
  * - Random motivational messages with emoji support
+ * - Multi-language support with automatic VS Code language detection
  * - Responsive to container size changes
  * - Optimized performance with requestAnimationFrame
+ * - Contextual time-based message selection
  */
+
+/**
+ * Temporal context for contextual messages
+ */
+enum TimeContext {
+  MORNING = 'morning',
+  AFTERNOON = 'afternoon',
+  EVENING = 'evening',
+  LATE_NIGHT = 'lateNight',
+  MONDAY = 'monday',
+  FRIDAY = 'friday',
+  WEEKEND = 'weekend',
+  WORKDAY = 'workday'
+}
+
+/**
+ * Context-based message mapping
+ * Maps time contexts to message keys that should be prioritized
+ */
+const CONTEXTUAL_MESSAGES: Record<TimeContext, string[]> = {
+  [TimeContext.MORNING]: [
+    'letsCode',
+    'coffee',
+    'caffeinated',
+    'productive',
+    'inspired',
+    'motivated',
+    'earlyBird'
+  ],
+  [TimeContext.AFTERNOON]: [
+    'keepCoding',
+    'productive',
+    'refactorTime',
+    'almostThere',
+    'meetingTime'
+  ],
+  [TimeContext.EVENING]: ['workingLate', 'oneMoreBug', 'almostThere', 'tired', 'overtime'],
+  [TimeContext.LATE_NIGHT]: ['workingLate', 'tired', 'sleeping', 'nightOwl', 'infiniteLoop'],
+  [TimeContext.MONDAY]: ['mondayBlues', 'letsCode', 'coffee', 'motivated'],
+  [TimeContext.FRIDAY]: ['fridayFeeling', 'deployFriday', 'almostThere', 'weekend'],
+  [TimeContext.WEEKEND]: ['weekend', 'procrastinating', 'inspired', 'sideProject', 'chillin'],
+  [TimeContext.WORKDAY]: ['productive', 'keepCoding', 'meetingTime', 'debugTime']
+};
+
+/**
+ * Gets current time contexts based on system time
+ */
+function getCurrentTimeContexts(): TimeContext[] {
+  const now = new Date();
+  const hour = now.getHours();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+  const contexts: TimeContext[] = [];
+
+  // Add time-of-day contexts
+  if (hour >= 6 && hour < 12) {
+    contexts.push(TimeContext.MORNING);
+  } else if (hour >= 12 && hour < 18) {
+    contexts.push(TimeContext.AFTERNOON);
+  } else if (hour >= 18 && hour < 22) {
+    contexts.push(TimeContext.EVENING);
+  } else {
+    contexts.push(TimeContext.LATE_NIGHT);
+  }
+
+  // Add day-of-week contexts
+  if (dayOfWeek === 1) {
+    // Monday
+    contexts.push(TimeContext.MONDAY, TimeContext.WORKDAY);
+  } else if (dayOfWeek === 5) {
+    // Friday
+    contexts.push(TimeContext.FRIDAY, TimeContext.WORKDAY);
+  } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+    // Weekend
+    contexts.push(TimeContext.WEEKEND);
+  } else {
+    // Tuesday-Thursday
+    contexts.push(TimeContext.WORKDAY);
+  }
+
+  return contexts;
+}
+
+/**
+ * Gets contextual message keys for current time
+ */
+function getContextualMessageKeys(): string[] {
+  const contexts = getCurrentTimeContexts();
+  const contextualKeys = new Set<string>();
+
+  contexts.forEach(context => {
+    const messages = CONTEXTUAL_MESSAGES[context] || [];
+    messages.forEach(key => contextualKeys.add(key));
+  });
+
+  return Array.from(contextualKeys);
+}
+
+/**
+ * Webview localization system
+ * Gets translations from window object injected by extension backend
+ */
+function getWebviewTranslation(key: string): string {
+  // Get translations from window object or use defaults
+  const translations = (window as any).kubitoTranslations || {
+    sleeping: 'Zzz...',
+    letsCode: "Let's code! 🚀",
+    coffee: 'Coffee? ☕️',
+    vivaKubit: 'Viva Kubit!',
+    kubitLogo: 'Kubit Logo',
+    kubitLove: 'Kubit Love'
+  };
+
+  return translations[key] || key;
+}
 
 /**
  * Message type definitions for Kubito's communication system
@@ -85,30 +202,270 @@ const MESSAGE_CONFIG = {
 } as const;
 
 /**
- * Pre-defined messages that Kubito can randomly display
+ * Gets localized messages that Kubito can randomly display
  * Mix of emojis, text, and branded images for variety and engagement
  */
-const KUBITO_MESSAGES: readonly IMessage[] = [
-  // Expressive emojis
-  { type: 'emoji', content: '🤓' },
-  { type: 'emoji', content: '😎' },
-  { type: 'emoji', content: '🙃' },
-  { type: 'emoji', content: '🤡' },
-  { type: 'emoji', content: '👋' },
-  { type: 'emoji', content: '⁉️' },
-  { type: 'emoji', content: '❤️' },
-  { type: 'emoji', content: '🚫 🐛' },
+function getLocalizedMessages(): readonly IMessage[] {
+  return [
+    // Expressive emojis (universal)
+    { type: 'emoji', content: '🤓' },
+    { type: 'emoji', content: '😎' },
+    { type: 'emoji', content: '🙃' },
+    { type: 'emoji', content: '🤡' },
+    { type: 'emoji', content: '👋' },
+    { type: 'emoji', content: '⁉️' },
+    { type: 'emoji', content: '❤️' },
+    { type: 'emoji', content: '🚫 🐛' },
+    { type: 'emoji', content: '🚀' },
+    { type: 'emoji', content: '💻' },
+    { type: 'emoji', content: '🔥' },
+    { type: 'emoji', content: '✨' },
+    { type: 'emoji', content: '🎯' },
+    { type: 'emoji', content: '🧙‍♂️' },
+    { type: 'emoji', content: '🦆' },
+    { type: 'emoji', content: '🥷' },
+    { type: 'emoji', content: '🤖' },
+    { type: 'emoji', content: '🐍' },
+    { type: 'emoji', content: '☁️' },
+    { type: 'emoji', content: '⚛️' },
 
-  // Motivational and fun text messages
-  { type: 'text', content: 'Zzz...' },
-  { type: 'text', content: '¡A programar! 🚀' },
-  { type: 'text', content: '¿Un café? ☕️' },
-  { type: 'text', content: '¡Viva Kubit!' },
+    // Basic localized messages
+    { type: 'text', content: getWebviewTranslation('sleeping') },
+    { type: 'text', content: getWebviewTranslation('letsCode') },
+    { type: 'text', content: getWebviewTranslation('coffee') },
+    { type: 'text', content: getWebviewTranslation('vivaKubit') },
 
-  // Kubit branding images
-  { type: 'image', content: 'kubit_logo', alt: 'Kubit Logo' },
-  { type: 'image', content: 'kubit_love', alt: 'Kubit Love' }
-] as const;
+    // Programming fun messages
+    { type: 'text', content: getWebviewTranslation('debugTime') },
+    { type: 'text', content: getWebviewTranslation('noMoreBugs') },
+    { type: 'text', content: getWebviewTranslation('commitTime') },
+    { type: 'text', content: getWebviewTranslation('syntaxError') },
+    { type: 'text', content: getWebviewTranslation('workingLate') },
+    { type: 'text', content: getWebviewTranslation('mondayBlues') },
+    { type: 'text', content: getWebviewTranslation('fridayFeeling') },
+    { type: 'text', content: getWebviewTranslation('stackOverflow') },
+    { type: 'text', content: getWebviewTranslation('gitPush') },
+    { type: 'text', content: getWebviewTranslation('dockerizing') },
+
+    // Motivational messages
+    { type: 'text', content: getWebviewTranslation('keepCoding') },
+    { type: 'text', content: getWebviewTranslation('almostThere') },
+    { type: 'text', content: getWebviewTranslation('greatCode') },
+    { type: 'text', content: getWebviewTranslation('refactorTime') },
+    { type: 'text', content: getWebviewTranslation('testsPassing') },
+    { type: 'text', content: getWebviewTranslation('cleanCode') },
+    { type: 'text', content: getWebviewTranslation('oneMoreBug') },
+    { type: 'text', content: getWebviewTranslation('fullStack') },
+    { type: 'text', content: getWebviewTranslation('deployFriday') },
+
+    // Programming jargon
+    { type: 'text', content: getWebviewTranslation('helloWorld') },
+    { type: 'text', content: getWebviewTranslation('infiniteLoop') },
+    { type: 'text', content: getWebviewTranslation('nullPointer') },
+    { type: 'text', content: getWebviewTranslation('recursion') },
+    { type: 'text', content: getWebviewTranslation('leetCode') },
+    { type: 'text', content: getWebviewTranslation('algorithm') },
+    { type: 'text', content: getWebviewTranslation('bigO') },
+    { type: 'text', content: getWebviewTranslation('asyncAwait') },
+    { type: 'text', content: getWebviewTranslation('callback') },
+    { type: 'text', content: getWebviewTranslation('promise') },
+
+    // Mood messages
+    { type: 'text', content: getWebviewTranslation('caffeinated') },
+    { type: 'text', content: getWebviewTranslation('tired') },
+    { type: 'text', content: getWebviewTranslation('eureka') },
+    { type: 'text', content: getWebviewTranslation('frustrated') },
+    { type: 'text', content: getWebviewTranslation('productive') },
+    { type: 'text', content: getWebviewTranslation('procrastinating') },
+    { type: 'text', content: getWebviewTranslation('inspired') },
+    { type: 'text', content: getWebviewTranslation('rubberDuck') },
+    { type: 'text', content: getWebviewTranslation('imposter') },
+    { type: 'text', content: getWebviewTranslation('genius') },
+
+    // Tech and tools
+    { type: 'text', content: getWebviewTranslation('reactTime') },
+    { type: 'text', content: getWebviewTranslation('nodeJs') },
+    { type: 'text', content: getWebviewTranslation('python') },
+    { type: 'text', content: getWebviewTranslation('javascript') },
+    { type: 'text', content: getWebviewTranslation('typescript') },
+    { type: 'text', content: getWebviewTranslation('cssLife') },
+    { type: 'text', content: getWebviewTranslation('htmlBasic') },
+    { type: 'text', content: getWebviewTranslation('gitMerge') },
+    { type: 'text', content: getWebviewTranslation('vscode') },
+    { type: 'text', content: getWebviewTranslation('terminal') },
+
+    // Time/schedule messages
+    { type: 'text', content: getWebviewTranslation('lunchTime') },
+    { type: 'text', content: getWebviewTranslation('breakTime') },
+    { type: 'text', content: getWebviewTranslation('overtime') },
+    { type: 'text', content: getWebviewTranslation('earlyBird') },
+    { type: 'text', content: getWebviewTranslation('nightOwl') },
+    { type: 'text', content: getWebviewTranslation('weekend') },
+    { type: 'text', content: getWebviewTranslation('vacation') },
+    { type: 'text', content: getWebviewTranslation('deadline') },
+    { type: 'text', content: getWebviewTranslation('crunchTime') },
+    { type: 'text', content: getWebviewTranslation('chillin') },
+
+    // Philosophical/funny messages
+    { type: 'text', content: getWebviewTranslation('existential') },
+    { type: 'text', content: getWebviewTranslation('matrix') },
+    { type: 'text', content: getWebviewTranslation('binary') },
+    { type: 'text', content: getWebviewTranslation('quantum') },
+    { type: 'text', content: getWebviewTranslation('artificial') },
+    { type: 'text', content: getWebviewTranslation('singularity') },
+    { type: 'text', content: getWebviewTranslation('metaverse') },
+    { type: 'text', content: getWebviewTranslation('blockchain') },
+    { type: 'text', content: getWebviewTranslation('cloud') },
+    { type: 'text', content: getWebviewTranslation('serverless') },
+
+    // Kubit branding images (localized alt text)
+    { type: 'image', content: 'kubit_logo', alt: getWebviewTranslation('kubitLogo') },
+    { type: 'image', content: 'kubit_love', alt: getWebviewTranslation('kubitLove') }
+  ] as const;
+}
+
+/**
+ * Creates a map of message key to IMessage for contextual selection
+ */
+function getMessageMap(): Map<string, IMessage> {
+  const messageMap = new Map<string, IMessage>();
+
+  // Add text messages with their keys
+  const textMessages = [
+    'sleeping',
+    'letsCode',
+    'coffee',
+    'vivaKubit',
+    'debugTime',
+    'noMoreBugs',
+    'commitTime',
+    'syntaxError',
+    'workingLate',
+    'mondayBlues',
+    'fridayFeeling',
+    'stackOverflow',
+    'gitPush',
+    'dockerizing',
+    'keepCoding',
+    'almostThere',
+    'greatCode',
+    'refactorTime',
+    'testsPassing',
+    'cleanCode',
+    'oneMoreBug',
+    'fullStack',
+    'deployFriday',
+    'helloWorld',
+    'infiniteLoop',
+    'nullPointer',
+    'recursion',
+    'leetCode',
+    'algorithm',
+    'bigO',
+    'asyncAwait',
+    'callback',
+    'promise',
+    'caffeinated',
+    'tired',
+    'eureka',
+    'frustrated',
+    'productive',
+    'procrastinating',
+    'inspired',
+    'rubberDuck',
+    'imposter',
+    'genius',
+    'reactTime',
+    'nodeJs',
+    'python',
+    'javascript',
+    'typescript',
+    'cssLife',
+    'htmlBasic',
+    'gitMerge',
+    'vscode',
+    'terminal',
+    'lunchTime',
+    'breakTime',
+    'overtime',
+    'earlyBird',
+    'nightOwl',
+    'weekend',
+    'motivated',
+    'meetingTime',
+    'sideProject',
+    'vacation',
+    'deadline',
+    'crunchTime',
+    'chillin',
+    'existential',
+    'matrix',
+    'binary',
+    'quantum',
+    'artificial',
+    'singularity',
+    'metaverse',
+    'blockchain',
+    'cloud',
+    'serverless'
+  ];
+
+  textMessages.forEach(key => {
+    messageMap.set(key, { type: 'text', content: getWebviewTranslation(key) });
+  });
+
+  return messageMap;
+}
+
+/**
+ * Gets contextual messages based on current time, with fallback to random
+ */
+function getContextualMessages(enableContextual: boolean = true): readonly IMessage[] {
+  const allMessages = getLocalizedMessages();
+
+  if (!enableContextual) {
+    return allMessages;
+  }
+
+  const contextualKeys = getContextualMessageKeys();
+  if (contextualKeys.length === 0) {
+    return allMessages;
+  }
+
+  const messageMap = getMessageMap();
+  const contextualMessages: IMessage[] = [];
+  const nonContextualMessages: IMessage[] = [];
+
+  // Separate emoji and image messages (always available)
+  const universalMessages = allMessages.filter(msg => msg.type === 'emoji' || msg.type === 'image');
+
+  // Get all text messages and separate contextual from non-contextual
+  allMessages
+    .filter(msg => msg.type === 'text')
+    .forEach(msg => {
+      const foundKey = Array.from(messageMap.entries()).find(
+        ([_, value]) => value.content === msg.content
+      );
+
+      if (foundKey && contextualKeys.includes(foundKey[0])) {
+        contextualMessages.push(msg);
+      } else {
+        nonContextualMessages.push(msg);
+      }
+    });
+
+  // Create weighted selection pool
+  // 70% contextual messages, 20% universal, 10% other text messages
+  const weightedMessages: IMessage[] = [
+    ...contextualMessages,
+    ...contextualMessages, // Duplicate for higher weight
+    ...contextualMessages, // Triple for even higher weight
+    ...universalMessages,
+    ...nonContextualMessages.slice(0, Math.max(1, Math.floor(nonContextualMessages.length * 0.2)))
+  ];
+
+  return weightedMessages.length > 0 ? weightedMessages : allMessages;
+}
 
 /**
  * Main Kubito animation controller class
@@ -380,11 +737,24 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Get a random message from the messages array
+   * Get a contextual message based on current time, with fallback to random
    */
   private getRandomMessage(): IMessage {
-    const randomIndex = Math.floor(Math.random() * KUBITO_MESSAGES.length);
-    return KUBITO_MESSAGES[randomIndex];
+    // Check if contextual messaging is enabled (can be configured via settings)
+    const enableContextual = this.getContextualSetting();
+
+    const messages = getContextualMessages(enableContextual);
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    return messages[randomIndex];
+  }
+
+  /**
+   * Gets the contextual messaging setting from VS Code configuration
+   */
+  private getContextualSetting(): boolean {
+    // Get configuration from window object injected by extension
+    const config = (window as any).kubitoConfig || { contextualMessages: true };
+    return config.contextualMessages;
   }
 
   /**
@@ -621,6 +991,15 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
     this.jumpStartTime = null;
     this.jumpCompleted = false;
   }
+
+  /**
+   * Refresh configuration settings
+   * Called when settings change to apply new configuration immediately
+   */
+  public refreshConfig(): void {
+    // Configuration will be automatically picked up on the next message selection
+    // through getContextualSetting() method, no additional action needed
+  }
 }
 
 // Initialize when DOM is ready
@@ -646,5 +1025,24 @@ if (document.readyState === 'loading') {
 window.addEventListener('beforeunload', () => {
   if (kubitoWalker) {
     kubitoWalker.stop();
+  }
+});
+
+// Listen for messages from the extension host
+window.addEventListener('message', event => {
+  const message = event.data;
+
+  switch (message.command) {
+    case 'updateConfig':
+      // Update configuration without full page refresh
+      if (message.config && (window as any).kubitoConfig) {
+        (window as any).kubitoConfig = message.config;
+
+        // Refresh Kubito's configuration
+        if (kubitoWalker) {
+          kubitoWalker.refreshConfig();
+        }
+      }
+      break;
   }
 });

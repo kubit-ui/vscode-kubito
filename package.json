@@ -1,7 +1,7 @@
 {
   "name": "vscode-kubito",
   "displayName": "Kubito - Your Coding Companion",
-  "description": "An interactive and animated companion for your VS Code editor. Kubito walks around, responds to clicks, and shows motivational messages to keep you company while coding.",
+  "description": "An interactive and animated multilingual companion for your VS Code editor. Kubito walks around, responds to clicks, and shows contextual programming messages that adapt to time and day in 6 languages.",
   "version": "2.0.0",
   "publisher": "Kubit",
   "author": {
@@ -19,7 +19,7 @@
   "homepage": "https://github.com/kubit-ui/vscode-kubito#readme",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.105.0",
+    "vscode": "^1.74.0",
     "node": ">=18.0.0"
   },
   "categories": [
@@ -70,6 +70,34 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically show Kubito when opening VS Code"
+        },
+        "kubito.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "es",
+            "fr",
+            "de",
+            "pt",
+            "it"
+          ],
+          "enumDescriptions": [
+            "Detect from VS Code language",
+            "English",
+            "Español",
+            "Français",
+            "Deutsch",
+            "Português",
+            "Italiano"
+          ],
+          "default": "auto",
+          "description": "Language for Kubito messages"
+        },
+        "kubito.contextualMessages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show time and day-appropriate messages (e.g., 'Monday Blues' on Monday mornings, 'Working Late' in the evening)"
         }
       }
     }
@@ -96,7 +124,7 @@
     "@types/glob": "^9.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.9.1",
-    "@types/vscode": "^1.105.0",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "@vscode/test-electron": "^2.5.2",
