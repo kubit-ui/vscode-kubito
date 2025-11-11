@@ -51,7 +51,7 @@ suite('Localization Test Suite', () => {
     assert.strictEqual(getCurrentLanguage(), 'en', 'Should set current language to English');
     assert.ok(enTranslations.messages, 'Should return translations object');
     assert.strictEqual(
-      enTranslations.messages.letsCoding,
+      enTranslations.messages.letsCode,
       'Let\'s code! 🚀',
       'Should have English translation'
     );
@@ -60,7 +60,7 @@ suite('Localization Test Suite', () => {
     const esTranslations = setLanguage('es');
     assert.strictEqual(getCurrentLanguage(), 'es', 'Should set current language to Spanish');
     assert.strictEqual(
-      esTranslations.messages.letsCoding,
+      esTranslations.messages.letsCode,
       '¡A programar! 🚀',
       'Should have Spanish translation'
     );
@@ -92,9 +92,9 @@ suite('Localization Test Suite', () => {
 
     setLanguage('es');
     assert.strictEqual(
-      t('messages.letsCoding'),
+      t('messages.letsCode'),
       '¡A programar! 🚀',
-      'Should translate letsCoding message in Spanish'
+      'Should translate letsCode message in Spanish'
     );
 
     // Test non-existent key
@@ -151,7 +151,7 @@ suite('Localization Test Suite', () => {
 
     // Test specific translations exist
     assert.ok(translations.messages.sleeping, 'Should have sleeping message');
-    assert.ok(translations.messages.letsCoding, 'Should have letsCoding message');
+    assert.ok(translations.messages.letsCode, 'Should have letsCode message');
     assert.ok(translations.commands.show, 'Should have show command');
     assert.ok(translations.commands.hide, 'Should have hide command');
   });
@@ -172,7 +172,7 @@ suite('Localization Test Suite', () => {
       'Should fallback to default language for unsupported language'
     );
     assert.strictEqual(
-      translations.messages.letsCoding,
+      translations.messages.letsCode,
       'Let\'s code! 🚀',
       'Should use English translations as fallback'
     );

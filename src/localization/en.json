@@ -1,7 +1,7 @@
 {
   "messages": {
     "sleeping": "Zzz...",
-    "letsCoding": "Let's code! 🚀",
+    "letsCode": "Let's code! 🚀",
     "coffee": "Coffee? ☕️",
     "vivaKubit": "Viva Kubit!",
     "kubitLogo": "Kubit Logo",
@@ -22,7 +22,7 @@
     "refactorTime": "Refactor time 🔧",
     "testsPassing": "Tests passing ✅",
     "cleanCode": "Clean code = clear mind 🧠",
-    "oneMoreBug": "One more bug and... ☕",
+    "oneMoreBug": "One more bug and...",
     "scriptKiddie": "Script kiddie detected 🕵️",
     "fullStack": "Full Stack Developer 🥞",
     "deployFriday": "Deploy on Friday? 😱",
@@ -62,6 +62,9 @@
     "earlyBird": "Early morning coding 🌅",
     "nightOwl": "Night owl 🦉",
     "weekend": "Weekend coding? 📅",
+    "motivated": "Feeling motivated! 💪",
+    "meetingTime": "Another meeting... 📅",
+    "sideProject": "Side project time! 🛠️",
     "vacation": "Vacation === null 🏖️",
     "deadline": "Deadline approaching! ⏰",
     "crunchTime": "Crunch time activated 🔥",

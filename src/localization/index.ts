@@ -19,7 +19,7 @@ import itTranslations from './it.json';
 export interface ITranslations {
   messages: {
     sleeping: string;
-    letsCoding: string;
+    letsCode: string;
     coffee: string;
     vivaKubit: string;
     kubitLogo: string;

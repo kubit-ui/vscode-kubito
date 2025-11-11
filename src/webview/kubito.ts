@@ -11,7 +11,105 @@
  * - Multi-language support with automatic VS Code language detection
  * - Responsive to container size changes
  * - Optimized performance with requestAnimationFrame
+ * - Contextual time-based message selection
  */
+
+/**
+ * Temporal context for contextual messages
+ */
+enum TimeContext {
+  MORNING = 'morning',
+  AFTERNOON = 'afternoon',
+  EVENING = 'evening',
+  LATE_NIGHT = 'lateNight',
+  MONDAY = 'monday',
+  FRIDAY = 'friday',
+  WEEKEND = 'weekend',
+  WORKDAY = 'workday'
+}
+
+/**
+ * Context-based message mapping
+ * Maps time contexts to message keys that should be prioritized
+ */
+const CONTEXTUAL_MESSAGES: Record<TimeContext, string[]> = {
+  [TimeContext.MORNING]: [
+    'letsCode',
+    'coffee',
+    'caffeinated',
+    'productive',
+    'inspired',
+    'motivated',
+    'earlyBird'
+  ],
+  [TimeContext.AFTERNOON]: [
+    'keepCoding',
+    'productive',
+    'refactorTime',
+    'almostThere',
+    'meetingTime'
+  ],
+  [TimeContext.EVENING]: ['workingLate', 'oneMoreBug', 'almostThere', 'tired', 'overtime'],
+  [TimeContext.LATE_NIGHT]: ['workingLate', 'tired', 'sleeping', 'nightOwl', 'infiniteLoop'],
+  [TimeContext.MONDAY]: ['mondayBlues', 'letsCode', 'coffee', 'motivated'],
+  [TimeContext.FRIDAY]: ['fridayFeeling', 'deployFriday', 'almostThere', 'weekend'],
+  [TimeContext.WEEKEND]: ['weekend', 'procrastinating', 'inspired', 'sideProject', 'chillin'],
+  [TimeContext.WORKDAY]: ['productive', 'keepCoding', 'meetingTime', 'debugTime']
+};
+
+/**
+ * Gets current time contexts based on system time
+ */
+function getCurrentTimeContexts(): TimeContext[] {
+  const now = new Date();
+  const hour = now.getHours();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+  const contexts: TimeContext[] = [];
+
+  // Add time-of-day contexts
+  if (hour >= 6 && hour < 12) {
+    contexts.push(TimeContext.MORNING);
+  } else if (hour >= 12 && hour < 18) {
+    contexts.push(TimeContext.AFTERNOON);
+  } else if (hour >= 18 && hour < 22) {
+    contexts.push(TimeContext.EVENING);
+  } else {
+    contexts.push(TimeContext.LATE_NIGHT);
+  }
+
+  // Add day-of-week contexts
+  if (dayOfWeek === 1) {
+    // Monday
+    contexts.push(TimeContext.MONDAY, TimeContext.WORKDAY);
+  } else if (dayOfWeek === 5) {
+    // Friday
+    contexts.push(TimeContext.FRIDAY, TimeContext.WORKDAY);
+  } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+    // Weekend
+    contexts.push(TimeContext.WEEKEND);
+  } else {
+    // Tuesday-Thursday
+    contexts.push(TimeContext.WORKDAY);
+  }
+
+  return contexts;
+}
+
+/**
+ * Gets contextual message keys for current time
+ */
+function getContextualMessageKeys(): string[] {
+  const contexts = getCurrentTimeContexts();
+  const contextualKeys = new Set<string>();
+
+  contexts.forEach(context => {
+    const messages = CONTEXTUAL_MESSAGES[context] || [];
+    messages.forEach(key => contextualKeys.add(key));
+  });
+
+  return Array.from(contextualKeys);
+}
 
 /**
  * Webview localization system
@@ -21,7 +119,7 @@ function getWebviewTranslation(key: string): string {
   // Get translations from window object or use defaults
   const translations = (window as any).kubitoTranslations || {
     sleeping: 'Zzz...',
-    letsCoding: "Let's code! 🚀",
+    letsCode: "Let's code! 🚀",
     coffee: 'Coffee? ☕️',
     vivaKubit: 'Viva Kubit!',
     kubitLogo: 'Kubit Logo',
@@ -133,7 +231,7 @@ function getLocalizedMessages(): readonly IMessage[] {
 
     // Basic localized messages
     { type: 'text', content: getWebviewTranslation('sleeping') },
-    { type: 'text', content: getWebviewTranslation('letsCoding') },
+    { type: 'text', content: getWebviewTranslation('letsCode') },
     { type: 'text', content: getWebviewTranslation('coffee') },
     { type: 'text', content: getWebviewTranslation('vivaKubit') },
 
@@ -224,6 +322,149 @@ function getLocalizedMessages(): readonly IMessage[] {
     { type: 'image', content: 'kubit_logo', alt: getWebviewTranslation('kubitLogo') },
     { type: 'image', content: 'kubit_love', alt: getWebviewTranslation('kubitLove') }
   ] as const;
+}
+
+/**
+ * Creates a map of message key to IMessage for contextual selection
+ */
+function getMessageMap(): Map<string, IMessage> {
+  const messageMap = new Map<string, IMessage>();
+
+  // Add text messages with their keys
+  const textMessages = [
+    'sleeping',
+    'letsCode',
+    'coffee',
+    'vivaKubit',
+    'debugTime',
+    'noMoreBugs',
+    'commitTime',
+    'syntaxError',
+    'workingLate',
+    'mondayBlues',
+    'fridayFeeling',
+    'stackOverflow',
+    'gitPush',
+    'dockerizing',
+    'keepCoding',
+    'almostThere',
+    'greatCode',
+    'refactorTime',
+    'testsPassing',
+    'cleanCode',
+    'oneMoreBug',
+    'fullStack',
+    'deployFriday',
+    'helloWorld',
+    'infiniteLoop',
+    'nullPointer',
+    'recursion',
+    'leetCode',
+    'algorithm',
+    'bigO',
+    'asyncAwait',
+    'callback',
+    'promise',
+    'caffeinated',
+    'tired',
+    'eureka',
+    'frustrated',
+    'productive',
+    'procrastinating',
+    'inspired',
+    'rubberDuck',
+    'imposter',
+    'genius',
+    'reactTime',
+    'nodeJs',
+    'python',
+    'javascript',
+    'typescript',
+    'cssLife',
+    'htmlBasic',
+    'gitMerge',
+    'vscode',
+    'terminal',
+    'lunchTime',
+    'breakTime',
+    'overtime',
+    'earlyBird',
+    'nightOwl',
+    'weekend',
+    'motivated',
+    'meetingTime',
+    'sideProject',
+    'vacation',
+    'deadline',
+    'crunchTime',
+    'chillin',
+    'existential',
+    'matrix',
+    'binary',
+    'quantum',
+    'artificial',
+    'singularity',
+    'metaverse',
+    'blockchain',
+    'cloud',
+    'serverless'
+  ];
+
+  textMessages.forEach(key => {
+    messageMap.set(key, { type: 'text', content: getWebviewTranslation(key) });
+  });
+
+  return messageMap;
+}
+
+/**
+ * Gets contextual messages based on current time, with fallback to random
+ */
+function getContextualMessages(enableContextual: boolean = true): readonly IMessage[] {
+  const allMessages = getLocalizedMessages();
+
+  if (!enableContextual) {
+    return allMessages;
+  }
+
+  const contextualKeys = getContextualMessageKeys();
+  if (contextualKeys.length === 0) {
+    return allMessages;
+  }
+
+  const messageMap = getMessageMap();
+  const contextualMessages: IMessage[] = [];
+  const nonContextualMessages: IMessage[] = [];
+
+  // Separate emoji and image messages (always available)
+  const universalMessages = allMessages.filter(msg => msg.type === 'emoji' || msg.type === 'image');
+
+  // Get all text messages and separate contextual from non-contextual
+  allMessages
+    .filter(msg => msg.type === 'text')
+    .forEach(msg => {
+      const foundKey = Array.from(messageMap.entries()).find(
+        ([_, value]) => value.content === msg.content
+      );
+
+      if (foundKey && contextualKeys.includes(foundKey[0])) {
+        contextualMessages.push(msg);
+      } else {
+        nonContextualMessages.push(msg);
+      }
+    });
+
+  // Create weighted selection pool
+  // 70% contextual messages, 20% universal, 10% other text messages
+  const weightedMessages: IMessage[] = [
+    ...contextualMessages,
+    ...contextualMessages, // Duplicate for higher weight
+    ...contextualMessages, // Triple for even higher weight
+    ...universalMessages,
+    ...nonContextualMessages.slice(0, Math.max(1, Math.floor(nonContextualMessages.length * 0.2)))
+  ];
+
+  return weightedMessages.length > 0 ? weightedMessages : allMessages;
 }
 
 /**
@@ -496,12 +737,24 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Get a random message from the localized messages array
+   * Get a contextual message based on current time, with fallback to random
    */
   private getRandomMessage(): IMessage {
-    const messages = getLocalizedMessages();
+    // Check if contextual messaging is enabled (can be configured via settings)
+    const enableContextual = this.getContextualSetting();
+
+    const messages = getContextualMessages(enableContextual);
     const randomIndex = Math.floor(Math.random() * messages.length);
     return messages[randomIndex];
+  }
+
+  /**
+   * Gets the contextual messaging setting from VS Code configuration
+   */
+  private getContextualSetting(): boolean {
+    // Get configuration from window object injected by extension
+    const config = (window as any).kubitoConfig || { contextualMessages: true };
+    return config.contextualMessages;
   }
 
   /**
@@ -738,6 +991,15 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
     this.jumpStartTime = null;
     this.jumpCompleted = false;
   }
+
+  /**
+   * Refresh configuration settings
+   * Called when settings change to apply new configuration immediately
+   */
+  public refreshConfig(): void {
+    // Configuration will be automatically picked up on the next message selection
+    // through getContextualSetting() method, no additional action needed
+  }
 }
 
 // Initialize when DOM is ready
@@ -763,5 +1025,24 @@ if (document.readyState === 'loading') {
 window.addEventListener('beforeunload', () => {
   if (kubitoWalker) {
     kubitoWalker.stop();
+  }
+});
+
+// Listen for messages from the extension host
+window.addEventListener('message', event => {
+  const message = event.data;
+
+  switch (message.command) {
+    case 'updateConfig':
+      // Update configuration without full page refresh
+      if (message.config && (window as any).kubitoConfig) {
+        (window as any).kubitoConfig = message.config;
+
+        // Refresh Kubito's configuration
+        if (kubitoWalker) {
+          kubitoWalker.refreshConfig();
+        }
+      }
+      break;
   }
 });

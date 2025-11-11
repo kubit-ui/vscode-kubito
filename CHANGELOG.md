@@ -6,7 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2025-11-10
+## [2.1.0] - 2025-11-11
+
+### ✨ Smart Contextual Messages
+
+- **🕐 Time-Aware Messages** - Messages now adapt to the time of day and day of
+  the week
+- **🌅 Morning Context** - Motivational messages like "Let's code!", "Coffee?",
+  "Feeling motivated!" during 6 AM - 12 PM
+- **🌆 Evening Context** - Wind-down messages like "Working late", "One more
+  bug...", "Need sleep..." during 6 PM - 10 PM
+- **🌙 Late Night Context** - Night owl messages like "Coding late night",
+  "Infinite loop", "Caffeinated and ready" during 10 PM - 6 AM
+- **💙 Monday Blues** - Special Monday motivation with "Monday coding blues",
+  "Coffee?", "Let's code!"
+- **🎉 Friday Feeling** - End-of-week celebration with "Friday deploy!", "Friday
+  feeling!", "Almost there!"
+- **📅 Weekend Coding** - Relaxed weekend vibes with "Weekend coding?", "Side
+  project time!", "Procrastinating a bit..."
+
+### ⚙️ Enhanced Configuration
+
+- **🔧 Contextual Messages Setting** - New `kubito.contextualMessages` setting
+  to enable/disable time-aware messages
+- **🎛️ User Control** - Users can choose between contextual messages or
+  completely random selection
+- **📊 Weighted Selection** - 70% contextual messages, 20% universal, 10% random
+  for perfect balance
+
+### 🌍 Extended Localization
+
+- **➕ New Messages** - Added `motivated`, `meetingTime`, `sideProject` messages
+  in all 6 languages
+- **🔄 Message Consistency** - All contextual messages properly translated
+  across English, Spanish, French, German, Portuguese, and Italian
+
+### 🧪 Quality Improvements
+
+- **✅ Comprehensive Testing** - Added full test suite for contextual message
+  logic
+- **🕐 Time Detection Tests** - Validates morning, afternoon, evening, and late
+  night detection
+- **📅 Day Context Tests** - Ensures proper Monday, Friday, weekend, and workday
+  recognition
+- **🔍 Message Validation** - Tests message structure and contextual mapping
+  integrity
 
 ### Major Language Expansion
 
@@ -32,7 +76,7 @@ and this project adheres to
 - **Time-Contextual** - Messages for different times (Monday blues, Friday
   deploys, late night coding)
 
-### � New Message Categories
+### New Message Categories
 
 - **Debugging & Bugs** - Humorous takes on the debugging process
 - **Development Tools** - References to popular dev tools and workflows
@@ -76,7 +120,7 @@ and this project adheres to
 
 #### 🇮🇹 Italiano - Italian translation with programming passion
 
-### � Statistics
+### Statistics
 
 - **Languages**: 6 (English, Spanish, French, Portuguese, German, Italian)
 - **Messages**: 70+ unique programming-related messages per language

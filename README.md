@@ -12,7 +12,10 @@
   sidebar
 - 🦘 **Interactive Fun**: Click on Kubito to make him jump with special
   animations
-- 💬 **Friendly Messages**: Random encouraging messages appear while you work
+- 💬 **Smart Messages**: Context-aware messages that adapt to time and day
+  (Monday Blues, Friday Feeling, Working Late)
+- 🌍 **6 Languages**: Full support for English, Spanish, French, German,
+  Portuguese, and Italian
 - 🎯 **Smart Behavior**: Kubito cleverly avoids edges and follows his own path
 - ✨ **Delightful Details**: Beautiful hover effects and smooth animations
 
@@ -30,7 +33,8 @@
 | ---------------------- | ----------------------------------------------- |
 | 🖱️ **Click Kubito**    | He jumps with a cute animation!                 |
 | 👀 **Hover over him**  | See a nice glow effect                          |
-| ⏰ **Wait and watch**  | Random messages appear automatically            |
+| ⏰ **Wait and watch**  | Context-aware messages appear automatically     |
+| 🌍 **Change language** | Messages adapt to your preferred language       |
 | 📁 **Expand/Collapse** | Control Kubito's section like any sidebar panel |
 
 ## ⚙️ Settings
@@ -38,6 +42,25 @@
 Access in: `Settings > Extensions > Kubito`
 
 - **Auto Show** → Automatically show Kubito when opening VS Code _(default: on)_
+- **Language** → Choose from 6 languages or auto-detect from VS Code _(default:
+  auto)_
+- **Contextual Messages** → Show time and day-appropriate messages _(default:
+  on)_
+
+## 🕐 Smart Contextual Messages
+
+Kubito now shows messages that match your coding context:
+
+- **Monday Morning** 💙 → "Monday coding blues", "Let's code!", "Coffee?"
+- **Friday Afternoon** 🎉 → "Friday deploy!", "Friday feeling!", "Almost there!"
+- **Late Night Coding** 🌙 → "Working late night", "Need sleep...", "Coffee++"
+- **Weekend Sessions** 📅 → "Weekend coding?", "Side project time!",
+  "Procrastinating a bit..."
+- **General Times** → Morning motivation, afternoon productivity, evening
+  wind-down
+
+_Contextual messages can be disabled in settings if you prefer completely random
+messages._
 
 ## 💡 Tips & Tricks
 

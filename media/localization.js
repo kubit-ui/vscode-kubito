@@ -7,19 +7,19 @@
  * This will be injected by the extension backend
  */
 let webviewTranslations = {
-    sleeping: 'Zzz...',
-    letsCoding: 'Let\'s code! 🚀',
-    coffee: 'Coffee? ☕️',
-    vivaKubit: 'Viva Kubit!',
-    kubitLogo: 'Kubit Logo',
-    kubitLove: 'Kubit Love'
+  sleeping: 'Zzz...',
+  letsCode: "Let's code! 🚀",
+  coffee: 'Coffee? ☕️',
+  vivaKubit: 'Viva Kubit!',
+  kubitLogo: 'Kubit Logo',
+  kubitLove: 'Kubit Love'
 };
 /**
  * Sets the translations for the webview
  * Called by the extension backend when language changes
  */
-window.setKubitoTranslations = (translations) => {
-    webviewTranslations = translations;
+window.setKubitoTranslations = translations => {
+  webviewTranslations = translations;
 };
 /**
  * Gets a translated message for the webview
@@ -27,13 +27,13 @@ window.setKubitoTranslations = (translations) => {
  * @returns The translated message
  */
 export function getWebviewTranslation(key) {
-    return webviewTranslations[key] || key;
+  return webviewTranslations[key] || key;
 }
 /**
  * Gets all webview translations
  * @returns The complete translations object
  */
 export function getWebviewTranslations() {
-    return webviewTranslations;
+  return webviewTranslations;
 }
 //# sourceMappingURL=localization.js.map
