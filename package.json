@@ -61,6 +61,10 @@
       {
         "command": "kubito.hide",
         "title": "Hide Kubito"
+      },
+      {
+        "command": "kubito.openEventSettings",
+        "title": "Kubito: Configure Event Reactions"
       }
     ],
     "configuration": {
@@ -98,6 +102,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show time and day-appropriate messages (e.g., 'Monday Blues' on Monday mornings, 'Working Late' in the evening)"
+        },
+        "kubito.events.fileSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show reactions when saving files"
+        },
+        "kubito.events.gitCommit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show reactions when making Git commits"
+        },
+        "kubito.events.gitPush": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show reactions when pushing to Git remotes"
         }
       }
     }

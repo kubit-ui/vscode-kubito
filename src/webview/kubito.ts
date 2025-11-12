@@ -119,11 +119,9 @@ function getWebviewTranslation(key: string): string {
   // Get translations from window object or use defaults
   const translations = (window as any).kubitoTranslations || {
     sleeping: 'Zzz...',
-    letsCode: 'Let\'s code! 🚀',
+    letsCode: "Let's code! 🚀",
     coffee: 'Coffee? ☕️',
-    vivaKubit: 'Viva Kubit!',
-    kubitLogo: 'Kubit Logo',
-    kubitLove: 'Kubit Love'
+    vivaKubit: 'Viva Kubit!'
   };
 
   return translations[key] || key;
@@ -702,12 +700,40 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
    * Display a random message near Kubito
    */
   public showRandomMessage(): void {
+    const message = this.getRandomMessage();
+
+    this.showMessage(message);
+  }
+
+  /**
+   * Display a specific message near Kubito (triggered by events)
+   * This method interrupts any active message to prioritize event messages
+   * @param message - The message object to display
+   */
+  public showEventMessage(message: IMessage): void {
+    // Cancel any active random message timer
+    if (this.messageInterval) {
+      clearTimeout(this.messageInterval);
+      this.messageInterval = null;
+    }
+
+    // Hide any currently displayed message
+    if (this.isShowingMessage) {
+      this.hideMessage();
+    }
+
+    // Show the new event message immediately
+    this.showMessage(message);
+  }
+
+  /**
+   * Common logic for displaying any message near Kubito
+   * @param message - The message object to display
+   */
+  private showMessage(message: IMessage): void {
     if (this.isShowingMessage || this.isJumping) {
       return;
     }
-
-    const message = this.getRandomMessage();
-
     // Check if we need to change direction for this message (only once)
     const messageWidth = this.calculateMessageWidth(message);
     if (this.willCollideWithBoundary(messageWidth)) {
@@ -1042,6 +1068,13 @@ window.addEventListener('message', event => {
         if (kubitoWalker) {
           kubitoWalker.refreshConfig();
         }
+      }
+      break;
+
+    case 'showMessage':
+      // Show a specific message triggered by events
+      if (message.message && kubitoWalker) {
+        kubitoWalker.showEventMessage(message.message);
       }
       break;
   }

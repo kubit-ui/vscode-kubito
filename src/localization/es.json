@@ -1,6 +1,8 @@
 {
   "messages": {
     "sleeping": "Zzz...",
+    "committed": "Commiteado!",
+    "pushed": "Subido!",
     "letsCode": "¡A programar! 🚀",
     "coffee": "¿Un café? ☕️",
     "vivaKubit": "¡Viva Kubit!",
