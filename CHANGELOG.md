@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-11-12
+
+### ✨ Editor and Git Event Reactions
+
+- **💾 File Save Reactions** - Kubito now shows a disk emoji when you save files
+- **🔄 Git Commit Detection** - Shows "Committed!" message when you make Git commits
+- **🚀 Git Push Detection** - Shows "Pushed!" message when you push to remote repositories
+- **⚡️ Real-time Response** - Immediate reactions using file system watchers for `.git/logs/HEAD` and `.git/logs/refs/remotes`
+
+### ⚙️ Enhanced Configuration
+
+- **🎛️ Event Settings** - New configuration options to control reactions:
+  - `kubito.events.fileSave` - Toggle file save reactions (default: enabled)
+  - `kubito.events.gitCommit` - Toggle Git commit reactions (default: enabled)
+  - `kubito.events.gitPush` - Toggle Git push reactions (default: enabled)
+- **⚙️ Quick Settings Access** - New "Kubito: Configure Event Reactions" command for easy setup
+- **🔧 Event Message Priority** - Event messages interrupt random messages for immediate feedback
+
 ## [2.1.0] - 2025-11-11
 
 ### ✨ Smart Contextual Messages
