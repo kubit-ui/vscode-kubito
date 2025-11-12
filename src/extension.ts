@@ -7,6 +7,15 @@ import {
 } from './localization';
 
 /**
+ * Message interface for Kubito's communication system
+ */
+interface IMessage {
+  readonly type: 'emoji' | 'text' | 'image';
+  readonly content: string;
+  readonly alt?: string;
+}
+
+/**
  * Interface for the Kubito webview provider that extends VS Code's WebviewViewProvider
  * This interface ensures proper typing for our webview implementation
  */
@@ -23,6 +32,16 @@ interface IKubitoWebviewProvider extends vscode.WebviewViewProvider {
  * Used to manage the extension's lifecycle and webview state
  */
 let kubitoWebviewProvider: KubitoWebviewProvider | undefined;
+
+/**
+ * Check if a specific event type is enabled in user settings
+ * @param eventType - The event type to check (fileSave, gitCommit, gitPush)
+ * @returns Whether the event is enabled
+ */
+function isEventEnabled(eventType: string): boolean {
+  const config = vscode.workspace.getConfiguration('kubito.events');
+  return config.get<boolean>(eventType, true); // Default to true if not set
+}
 
 /**
  * Extension activation function
@@ -42,6 +61,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Register commands
   registerCommands(context);
+
+  // Register editor event listeners
+  registerEditorEventListeners(context);
 
   // Listen for configuration changes
   registerConfigurationListener(context);
@@ -83,7 +105,68 @@ function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
-  context.subscriptions.push(showKubitoCommand, hideKubitoCommand);
+  // Command to quickly open event configuration settings
+  const openEventSettingsCommand = vscode.commands.registerCommand(
+    'kubito.openEventSettings',
+    async (): Promise<void> => {
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'kubito.events');
+    }
+  );
+
+  context.subscriptions.push(showKubitoCommand, hideKubitoCommand, openEventSettingsCommand);
+}
+
+/**
+ * Register Git event listeners using file system watchers
+ * @param context - VS Code extension context for managing listener lifecycle
+ */
+function registerGitListeners(context: vscode.ExtensionContext): void {
+  // Detect successful commits - when Git log is updated
+  const logsWatcher = vscode.workspace.createFileSystemWatcher('**/.git/logs/HEAD');
+
+  logsWatcher.onDidChange(() => {
+    if (!kubitoWebviewProvider || !isEventEnabled('gitCommit')) return;
+
+    kubitoWebviewProvider.triggerMessage({
+      content: t('messages.committed'),
+      type: 'text'
+    });
+  });
+
+  // Detect push/pull operations - when remote ref logs change (more reliable)
+  const refsLogsWatcher = vscode.workspace.createFileSystemWatcher('**/.git/logs/refs/remotes/**');
+
+  refsLogsWatcher.onDidChange(() => {
+    if (!kubitoWebviewProvider || !isEventEnabled('gitPush')) return;
+
+    kubitoWebviewProvider.triggerMessage({
+      content: t('messages.pushed'),
+      type: 'text'
+    });
+  });
+
+  context.subscriptions.push(logsWatcher, refsLogsWatcher);
+}
+
+/**
+ * Register editor and terminal event listeners for Git reactions
+ * @param context - VS Code extension context for managing listener lifecycle
+ */
+function registerEditorEventListeners(context: vscode.ExtensionContext): void {
+  // Listen for file save events
+  const onSaveListener = vscode.workspace.onDidSaveTextDocument(document => {
+    if (!kubitoWebviewProvider || !isEventEnabled('fileSave')) return;
+
+    kubitoWebviewProvider.triggerMessage({
+      content: '💾',
+      type: 'emoji'
+    });
+  });
+
+  // Register Git listeners
+  registerGitListeners(context);
+
+  context.subscriptions.push(onSaveListener);
 }
 
 /**
@@ -199,10 +282,10 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
         window.kubitoWalkingUri = "${resourceUris.walkingGif}";
         window.kubitoJumpingUri = "${resourceUris.jumpingGif}";
         window.kubitoIdleUri = "${resourceUris.idlePng}";
-        
+
         // Store translations to be used by the main script
         window.kubitoTranslations = ${JSON.stringify(getCurrentTranslations().messages)};
-        
+
         // Store configuration settings
         window.kubitoConfig = ${JSON.stringify(this.getKubitoConfig())};
     </script>
@@ -245,6 +328,19 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
       void this._view.webview.postMessage({
         command: 'updateConfig',
         config: config
+      });
+    }
+  }
+
+  /**
+   * Send a message to be displayed by Kubito
+   * @param message - Message object to display
+   */
+  public triggerMessage(message: IMessage): void {
+    if (this._view) {
+      void this._view.webview.postMessage({
+        command: 'showMessage',
+        message: message
       });
     }
   }
