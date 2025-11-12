@@ -125,7 +125,9 @@ function registerGitListeners(context: vscode.ExtensionContext): void {
   const logsWatcher = vscode.workspace.createFileSystemWatcher('**/.git/logs/HEAD');
 
   logsWatcher.onDidChange(() => {
-    if (!kubitoWebviewProvider || !isEventEnabled('gitCommit')) return;
+    if (!kubitoWebviewProvider || !isEventEnabled('gitCommit')) {
+      return;
+    }
 
     kubitoWebviewProvider.triggerMessage({
       content: t('messages.committed'),
@@ -137,7 +139,9 @@ function registerGitListeners(context: vscode.ExtensionContext): void {
   const refsLogsWatcher = vscode.workspace.createFileSystemWatcher('**/.git/logs/refs/remotes/**');
 
   refsLogsWatcher.onDidChange(() => {
-    if (!kubitoWebviewProvider || !isEventEnabled('gitPush')) return;
+    if (!kubitoWebviewProvider || !isEventEnabled('gitPush')) {
+      return;
+    }
 
     kubitoWebviewProvider.triggerMessage({
       content: t('messages.pushed'),
@@ -154,8 +158,10 @@ function registerGitListeners(context: vscode.ExtensionContext): void {
  */
 function registerEditorEventListeners(context: vscode.ExtensionContext): void {
   // Listen for file save events
-  const onSaveListener = vscode.workspace.onDidSaveTextDocument(document => {
-    if (!kubitoWebviewProvider || !isEventEnabled('fileSave')) return;
+  const onSaveListener = vscode.workspace.onDidSaveTextDocument(() => {
+    if (!kubitoWebviewProvider || !isEventEnabled('fileSave')) {
+      return;
+    }
 
     kubitoWebviewProvider.triggerMessage({
       content: '💾',
