@@ -119,7 +119,7 @@ function getWebviewTranslation(key: string): string {
   // Get translations from window object or use defaults
   const translations = (window as any).kubitoTranslations || {
     sleeping: 'Zzz...',
-    letsCode: "Let's code! 🚀",
+    letsCode: 'Let\'s code! 🚀',
     coffee: 'Coffee? ☕️',
     vivaKubit: 'Viva Kubit!'
   };

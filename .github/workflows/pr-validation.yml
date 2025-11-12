@@ -83,6 +83,50 @@ jobs:
           # Title length is now just a warning
           echo "title_length_valid=true" >> $GITHUB_OUTPUT
 
+      - name: ESLint Validation
+        id: eslint-validation
+        run: |
+          echo "Running ESLint..."
+
+          # Check if ESLint script exists and run it
+          if yarn run --help | grep -q "lint"; then
+            echo "Found lint script, running ESLint..."
+            if yarn lint; then
+              echo "✅ ESLint passed"
+              echo "eslint_valid=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ ESLint failed - code must pass linting to merge"
+              echo "eslint_valid=false" >> $GITHUB_OUTPUT
+              exit 1  # This will fail the job and block merge
+            fi
+          elif yarn run --help | grep -q "eslint"; then
+            echo "Found eslint script, running ESLint..."
+            if yarn eslint; then
+              echo "✅ ESLint passed"
+              echo "eslint_valid=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ ESLint failed - code must pass linting to merge"
+              echo "eslint_valid=false" >> $GITHUB_OUTPUT
+              exit 1  # This will fail the job and block merge
+            fi
+          else
+            echo "⚠️ No ESLint script found - checking for eslint.config.js"
+            if [ -f "eslint.config.js" ] || [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
+              echo "ESLint config found, running with npx..."
+              if npx eslint . --ext .js,.jsx,.ts,.tsx; then
+                echo "✅ ESLint passed"
+                echo "eslint_valid=true" >> $GITHUB_OUTPUT
+              else
+                echo "❌ ESLint failed - code must pass linting to merge"
+                echo "eslint_valid=false" >> $GITHUB_OUTPUT
+                exit 1  # This will fail the job and block merge
+              fi
+            else
+              echo "⚠️ No ESLint configuration found - skipping"
+              echo "eslint_valid=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+
       - name: Test Coverage
         id: test-validation
         continue-on-error: true
@@ -116,11 +160,13 @@ jobs:
           script: |
             const branchName = '${{ github.head_ref }}';
             const prTitle = '${{ github.event.pull_request.title }}';
+            const eslintValid = '${{ steps.eslint-validation.outputs.eslint_valid }}';
 
-            // Simplified validation - everything passes by default
-            let status = '✅ **PASSED**';
+            // Check if ESLint validation passed
+            let status = eslintValid === 'true' ? '✅ **PASSED**' : '❌ **FAILED**';
+            const eslintStatus = eslintValid === 'true' ? '✅ Pass' : '❌ Fail';
 
-            // Generate simple report
+            // Generate report with ESLint status
             let report = `## 🔍 PR Validation Report
 
             **Status:** ${status}
@@ -129,10 +175,11 @@ jobs:
 
             ---
 
-            ### ✅ Validation Results
+            ### Validation Results
 
             | Check | Status | Description |
             |-------|--------|-------------|
+            | **ESLint** | ${eslintStatus} | Code linting validation ${eslintValid === 'true' ? '(Required ✅)' : '(Required ❌)'} |
             | **Basic Validation** | ✅ Pass | PR structure validated |
             | **Branch Check** | ✅ Pass | Branch name accepted |
             | **Tests** | ✅ Pass | Tests completed |
@@ -141,7 +188,21 @@ jobs:
 
             ### 🎯 Next Steps
 
-            **This PR is ready for review** - all validation checks passed!
+            ${eslintValid === 'true' 
+              ? '**This PR is ready for review** - all validation checks passed!' 
+              : '**❌ This PR cannot be merged** - ESLint validation failed. Please fix linting errors and push again.'
+            }
+
+            ${eslintValid !== 'true' 
+              ? `
+            **To fix ESLint errors:**
+            1. Run \`yarn lint\` locally to see all errors
+            2. Fix the linting issues in your code
+            3. Commit and push the fixes
+            4. The validation will run automatically again
+            ` 
+              : ''
+            }
 
             ---
 
@@ -179,5 +240,9 @@ jobs:
               console.log('Could not post comment:', error.message);
             }
 
-            // Always pass
-            core.info('✅ All PR validation checks passed - ready for review!');
+            // Check if ESLint passed - fail if not
+            if (eslintValid !== 'true') {
+              core.setFailed('❌ PR validation failed: ESLint errors must be fixed before merge');
+            } else {
+              core.info('✅ All PR validation checks passed - ready for review!');
+            }
