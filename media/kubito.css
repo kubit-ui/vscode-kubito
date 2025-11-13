@@ -23,9 +23,6 @@ body {
   left: 0;
   width: 36px;
   height: 36px;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
   transition: filter 0.3s ease;
   z-index: 999;
   cursor: pointer;

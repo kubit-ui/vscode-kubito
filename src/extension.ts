@@ -287,7 +287,7 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
         window.kubitLoveUri = "${resourceUris.love}";
         window.kubitoWalkingUri = "${resourceUris.walkingGif}";
         window.kubitoJumpingUri = "${resourceUris.jumpingGif}";
-        window.kubitoIdleUri = "${resourceUris.idlePng}";
+        window.kubitoIdleUri = "${resourceUris.idleGif}";
 
         // Store translations to be used by the main script
         window.kubitoTranslations = ${JSON.stringify(getCurrentTranslations().messages)};
@@ -362,17 +362,17 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
 
     return {
       // Kubito animation assets
-      walkingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_walking.gif')),
-      jumpingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_jumping.gif')),
-      idlePng: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito_idle.png')),
+      walkingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-walking.gif')),
+      jumpingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-jumping.gif')),
+      idleGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-idle.gif')),
 
       // Styles and scripts
       css: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.css')),
       js: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.js')),
 
       // Kubit branding assets
-      logo: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit_logo.png')),
-      love: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit_love.png'))
+      logo: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit-logo.png')),
+      love: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubit-love.png'))
     };
   }
 }

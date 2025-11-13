@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2025-11-13
+
+### ✨ Enhanced Movement & Animation System
+
+- **🎮 Natural Wandering Behavior** - Kubito now follows realistic movement patterns with alternating wandering and pause states
+- **⚡️ Optimized Movement Speed** - Reduced movement speed from 0.2 to 0.15 pixels/frame for more natural, relaxed pacing
+- **🔄 Smart State Management** - New KubitoState system (WANDERING, PAUSED, JUMPING, TALKING) with intelligent transitions
+- **🎪 Autonomous Jump Behavior** - Kubito now occasionally jumps on his own with 20% probability during pause states
+
+
+### 🛠️ Technical Improvements
+- **🏗️ Better Architecture** - Clean separation between movement states, timing logic, and visual updates
+- **🎯 Message Logic** - Smart timing ensures messages only appear during paused state in safe zone (3-7 second intervals)
+- **⏱️ Jump Cooldown** - 1-second cooldown after jumps prevents message conflicts
+- **🎨 Asset Consistency** - Renamed assets from `kubito_*` to `kubito-*` format for consistency
+
 ## [2.2.0] - 2025-11-12
 
 ### ✨ Editor and Git Event Reactions
