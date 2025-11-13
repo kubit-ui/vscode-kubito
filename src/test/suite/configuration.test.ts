@@ -60,4 +60,51 @@ suite('Configuration Test Suite', () => {
       'autoShow should default to true'
     );
   });
+
+  /**
+   * Test suite for event configuration settings
+   */
+  test('Should have event configuration settings with correct defaults', () => {
+    const extension = vscode.extensions.getExtension('Kubit.vscode-kubito');
+    const packageJSON = extension?.packageJSON;
+
+    assert.ok(
+      packageJSON?.contributes?.configuration?.properties,
+      'Should have configuration properties'
+    );
+
+    const properties = packageJSON.contributes.configuration.properties;
+
+    // Test that event settings exist
+    assert.ok(properties['kubito.events.fileSave'], 'Should have file save event setting');
+    assert.ok(properties['kubito.events.gitCommit'], 'Should have git commit event setting');
+    assert.ok(properties['kubito.events.gitPush'], 'Should have git push event setting');
+
+    // Test default values
+    assert.strictEqual(
+      properties['kubito.events.fileSave'].default,
+      true,
+      'File save should be enabled by default'
+    );
+    assert.strictEqual(
+      properties['kubito.events.gitCommit'].default,
+      true,
+      'Git commit should be enabled by default'
+    );
+    assert.strictEqual(
+      properties['kubito.events.gitPush'].default,
+      true,
+      'Git push should be enabled by default'
+    );
+  });
+
+  test('Should read event configuration values correctly', () => {
+    // Test reading configuration values
+    const config = vscode.workspace.getConfiguration('kubito.events');
+
+    // These should have default values
+    assert.ok(typeof config.get('fileSave') === 'boolean', 'fileSave should be boolean');
+    assert.ok(typeof config.get('gitCommit') === 'boolean', 'gitCommit should be boolean');
+    assert.ok(typeof config.get('gitPush') === 'boolean', 'gitPush should be boolean');
+  });
 });

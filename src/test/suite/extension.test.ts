@@ -35,13 +35,17 @@ suite('Extension Test Suite', () => {
 
   /**
    * Verify that all expected commands are registered with VS Code
-   * Tests both show and hide command registration
+   * Tests show, hide, and openEventSettings commands
    */
   test('Commands should be registered', async () => {
     const commands = await vscode.commands.getCommands();
 
     assert.ok(commands.includes('kubito.show'), 'kubito.show command should be registered');
     assert.ok(commands.includes('kubito.hide'), 'kubito.hide command should be registered');
+    assert.ok(
+      commands.includes('kubito.openEventSettings'),
+      'kubito.openEventSettings command should be registered'
+    );
   });
 
   test('Webview should be available in Explorer', async () => {
@@ -51,15 +55,5 @@ suite('Extension Test Suite', () => {
     // Check that the extension contributes views to explorer
     const packageJSON = extension?.packageJSON;
     assert.ok(packageJSON?.contributes?.views?.explorer, 'Should contribute views to explorer');
-  });
-
-  test('Extension contributes should be present', () => {
-    const extension = vscode.extensions.getExtension('Kubit.vscode-kubito');
-    const packageJSON = extension?.packageJSON;
-
-    assert.ok(packageJSON, 'Package JSON should be available');
-    assert.ok(packageJSON.contributes, 'Should have contributes section');
-    assert.ok(packageJSON.contributes.views, 'Should contribute views');
-    assert.ok(packageJSON.contributes.commands, 'Should contribute commands');
   });
 });

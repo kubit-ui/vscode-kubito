@@ -33,11 +33,11 @@ suite('Assets Test Suite', () => {
 
     // Expected image files
     const imageFiles = [
-      'kubito_idle.png',
-      'kubito_walking.gif',
-      'kubito_jumping.gif',
-      'kubit_logo.png',
-      'kubit_love.png'
+      'kubito-idle.gif',
+      'kubito-walking.gif',
+      'kubito-jumping.gif',
+      'kubit-logo.png',
+      'kubit-love.png'
     ];
 
     imageFiles.forEach(fileName => {

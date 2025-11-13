@@ -29,6 +29,16 @@ enum TimeContext {
 }
 
 /**
+ * Kubito states for natural wandering behavior
+ */
+enum KubitoState {
+  WANDERING = 'wandering', // Moving around
+  PAUSED = 'paused', // Standing still/idle
+  JUMPING = 'jumping', // Jump animation
+  TALKING = 'talking' // Showing a message
+}
+
+/**
  * Context-based message mapping
  * Maps time contexts to message keys that should be prioritized
  */
@@ -173,16 +183,38 @@ interface IKubitoAnimator {
  */
 const KUBITO_CONFIG = {
   // Movement settings
-  SPEED: 0.3, // Pixels per frame - relaxed pace for easy interaction
+  SPEED: 0.15, // Reduced speed for more natural, slower wandering (was 0.2)
 
-  // Animation timing
+  // Wandering behavior timing
+  WANDERING_MIN: 3000, // Minimum wandering time (3 seconds) - reduced
+  WANDERING_MAX: 5000, // Maximum wandering time (5 seconds) - reduced
+  PAUSE_MIN: 1000, // Minimum pause time (1 second) - significantly reduced
+  PAUSE_MAX: 2500, // Maximum pause time (2.5 seconds) - significantly reduced
+
+  // Jump behavior
+  JUMP_CHANCE: 0.2, // 20% chance of jumping when entering pause (reduced from 30% for more messages)
   JUMP_DURATION: 800, // Jump animation duration in milliseconds
-  IDLE_DURATION: 500, // Pause duration between direction changes
+  POST_JUMP_COOLDOWN: 1000, // Cooldown after jump before messages can appear (1 second) - reduced
+
+  // Talking behavior
+  TALKING_DURATION: 3000, // How long to stay in talking state (4 seconds) - increased
+  POST_TALKING_PAUSE: 100, // Short pause after talking before returning to normal (1.5 seconds)
+
+  // State transition delays (to prevent visual glitches)
+  TRANSITION_DELAY: 150, // Small delay between state changes (150ms)
+  IMAGE_CHANGE_DELAY: 100, // Delay before changing images to prevent flicker (100ms)
+
+  // GIF restart settings - REMOVED: No longer needed
+  // GIF_RESTART_DELAY: 50, // Delay before applying aggressive restart technique (50ms)
+  // USE_AGGRESSIVE_GIF_RESTART: true, // Whether to use element cloning as fallback
 
   // Layout dimensions
   CONTAINER_PADDING: 36, // Padding to keep Kubito within visible bounds
   KUBITO_WIDTH: 36, // Kubito sprite width in pixels
-  KUBITO_HEIGHT: 36 // Kubito sprite height in pixels
+  KUBITO_HEIGHT: 36, // Kubito sprite height in pixels
+
+  // Safe zone for messages (expanded area for more message opportunities)
+  SAFE_ZONE_MARGIN: 0.05 // 5% margin on each side = 90% center safe zone (increased from 80%)
 } as const;
 
 /**
@@ -190,8 +222,8 @@ const KUBITO_CONFIG = {
  * Controls timing, sizing, and display behavior of Kubito's messages
  */
 const MESSAGE_CONFIG = {
-  DELAY_MIN: 5000, // Minimum delay between messages (5 seconds)
-  DELAY_MAX: 10000, // Maximum delay between messages (10 seconds)
+  DELAY_MIN: 3000, // Minimum delay between messages (3 seconds) - more frequent for better engagement
+  DELAY_MAX: 7000, // Maximum delay between messages (7 seconds) - reduced from 10s
   DURATION: 3000, // How long each message stays visible (3 seconds)
   WIDTH_THRESHOLD: 0.8, // Container width ratio for line wrapping
   WIDTH_MAX: 1.0, // Maximum width ratio before truncation
@@ -317,8 +349,8 @@ function getLocalizedMessages(): readonly IMessage[] {
     { type: 'text', content: getWebviewTranslation('serverless') },
 
     // Kubit branding images (localized alt text)
-    { type: 'image', content: 'kubit_logo', alt: getWebviewTranslation('kubitLogo') },
-    { type: 'image', content: 'kubit_love', alt: getWebviewTranslation('kubitLove') }
+    { type: 'image', content: 'kubit-logo', alt: getWebviewTranslation('kubitLogo') },
+    { type: 'image', content: 'kubit-love', alt: getWebviewTranslation('kubitLove') }
   ] as const;
 }
 
@@ -475,7 +507,7 @@ function getContextualMessages(enableContextual: boolean = true): readonly IMess
  * - State management for all animations
  * - Performance optimization with RAF cleanup
  */
-class KubitoWalker implements IKubitoAnimator, IAnimationState {
+class KubitoController implements IKubitoAnimator, IAnimationState {
   // Animation state properties
   public position = 0; // Current X position
   public direction = 1; // Movement direction (1=right, -1=left)
@@ -488,6 +520,14 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   public hasAdjustedDirectionForMessage = false; // Direction change guard
   public jumpStartTime: number | null = null; // Jump timing tracker
   public jumpCompleted = false; // Jump completion guard
+
+  // Wandering behavior state
+  public kubitoState: KubitoState = KubitoState.WANDERING; // Current kubito state
+  public stateStartTime: number = Date.now(); // When current state started
+  public currentStateDuration: number = 0; // How long to stay in current state
+  public currentImageState: string = ''; // Track current image to avoid unnecessary changes
+  public isTransitioning: boolean = false; // Flag to prevent rapid state changes
+  public lastJumpTime: number = 0; // Track last jump time for cooldown
 
   public readonly kubito: HTMLImageElement;
   public readonly container: HTMLElement;
@@ -512,6 +552,9 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
     this.setupEventListeners();
     this.setupRandomMessages();
     this.setupDynamicHeight();
+
+    // Initialize wandering behavior
+    this.initializeWanderingState();
   }
 
   /**
@@ -545,23 +588,17 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Set up all event listeners for interaction
+   * Set up event listeners for interaction (hover only - no clicking)
+   * Click interaction removed to prepare for future drag & drop functionality
    */
   private setupEventListeners(): void {
-    this.kubito.addEventListener('click', this.handleClick.bind(this));
+    // Remove existing listeners first to avoid duplicates
+    this.kubito.removeEventListener('mouseenter', this.handleMouseEnter.bind(this));
+    this.kubito.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
+
+    // Add new listeners
     this.kubito.addEventListener('mouseenter', this.handleMouseEnter.bind(this));
     this.kubito.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
-  }
-
-  /**
-   * Handle click events on Kubito
-   */
-  private handleClick(): void {
-    if (this.isJumping || this.jumpCompleted) {
-      return;
-    }
-
-    this.performJump();
   }
 
   /**
@@ -579,7 +616,8 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Set up the random message scheduling system
+   * Set up the random message scheduling system with smart timing
+   * Only shows messages when Kubito is paused and in a safe zone
    */
   private setupRandomMessages(): void {
     const scheduleNextMessage = (): void => {
@@ -588,7 +626,17 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
         MESSAGE_CONFIG.DELAY_MIN;
 
       this.messageInterval = window.setTimeout(() => {
-        if (!this.isJumping) {
+        const timeSinceLastJump = Date.now() - this.lastJumpTime;
+        const isInJumpCooldown = timeSinceLastJump < KUBITO_CONFIG.POST_JUMP_COOLDOWN;
+
+        // Show messages when not jumping, not in jump cooldown, and in safe zone
+        // Messages only appear during PAUSED state
+        if (
+          !this.isJumping &&
+          !isInJumpCooldown &&
+          this.kubitoState === KubitoState.PAUSED &&
+          this.isInSafeZone()
+        ) {
           this.showRandomMessage();
         }
         scheduleNextMessage();
@@ -619,7 +667,7 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Update jump animation - simplified without idle state
+   * Update jump animation with smooth transitions
    */
   private updateJumpAnimation(): void {
     if (!this.isJumping || this.jumpStartTime === null || this.jumpCompleted) {
@@ -627,21 +675,24 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
     }
 
     const elapsed = Date.now() - this.jumpStartTime;
-    const totalJumpTime = KUBITO_CONFIG.JUMP_DURATION + KUBITO_CONFIG.IDLE_DURATION;
 
-    if (elapsed >= totalJumpTime) {
+    if (elapsed >= KUBITO_CONFIG.JUMP_DURATION) {
       // Mark as completed first to prevent multiple executions
       this.jumpCompleted = true;
 
-      // Jump finished - return to walking
-      this.setKubitoImage('walking');
+      // Record jump completion time for cooldown
+      this.lastJumpTime = Date.now();
+
+      // Jump finished - return to appropriate state immediately (no delays)
+      const targetImage = this.kubitoState === KubitoState.WANDERING ? 'walking' : 'idle';
+      this.setKubitoImage(targetImage);
       this.isJumping = false;
       this.jumpStartTime = null;
 
       // Reset jumpCompleted after a brief delay to allow new jumps
       setTimeout(() => {
         this.jumpCompleted = false;
-      }, 100); // 100ms cooldown
+      }, 100);
     }
     // During jump: keep showing jumping gif (no intermediate idle state)
   } /**
@@ -701,7 +752,6 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
    */
   public showRandomMessage(): void {
     const message = this.getRandomMessage();
-
     this.showMessage(message);
   }
 
@@ -711,6 +761,11 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
    * @param message - The message object to display
    */
   public showEventMessage(message: IMessage): void {
+    // Don't show messages during jump animations
+    if (this.isJumping) {
+      return;
+    }
+
     // Cancel any active random message timer
     if (this.messageInterval) {
       clearTimeout(this.messageInterval);
@@ -722,23 +777,42 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
       this.hideMessage();
     }
 
-    // Show the new event message immediately
-    this.showMessage(message);
+    // Show the event message (no longer forced during jumps)
+    this.forceShowMessage(message);
   }
 
   /**
-   * Common logic for displaying any message near Kubito
+   * Common logic for displaying any message near Kubito (only for random messages)
    * @param message - The message object to display
    */
   private showMessage(message: IMessage): void {
     if (this.isShowingMessage || this.isJumping) {
       return;
     }
+
+    this.forceShowMessage(message);
+  }
+
+  /**
+   * Force show a message regardless of current state (for event messages)
+   * @param message - The message object to display
+   */
+  private forceShowMessage(message: IMessage): void {
+    // Note: Jump check already done in showEventMessage(), safe to proceed
+
+    // Transition to TALKING state when showing a message - immediately
+    this.kubitoState = KubitoState.TALKING;
+
+    // Only change to idle image if not already idle (to prevent unnecessary flicker)
+    if (this.currentImageState !== 'idle') {
+      this.setKubitoImage('idle');
+    }
+
     // Check if we need to change direction for this message (only once)
     const messageWidth = this.calculateMessageWidth(message);
     if (this.willCollideWithBoundary(messageWidth)) {
       this.direction *= -1;
-      this.kubito.className = this.direction === 1 ? 'walking-right' : 'walking-left';
+      this.updateDirectionClass();
       this.hasAdjustedDirectionForMessage = true;
     }
 
@@ -893,22 +967,48 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Set Kubito's image based on state
+   * Update direction class based on current state and direction
+   */
+  private updateDirectionClass(): void {
+    const directionClass = this.direction === 1 ? 'walking-right' : 'walking-left';
+
+    // For idle state, add special class to ensure GIF animation
+    if (this.kubitoState === KubitoState.PAUSED || this.kubitoState === KubitoState.TALKING) {
+      this.kubito.className = `${directionClass}`;
+    } else {
+      this.kubito.className = directionClass;
+    }
+
+    // Let CSS handle the direction through walking-left/walking-right classes
+    // Remove any manual transform to avoid conflicts with CSS
+    this.kubito.style.transform = '';
+  }
+
+  /**
+   * Set Kubito's image based on state with optimized change detection
    */
   private setKubitoImage(state: 'walking' | 'jumping' | 'idle'): void {
+    // Avoid unnecessary image changes to prevent flicker
+    if (this.currentImageState === state) {
+      // Still update direction class in case direction changed
+      this.updateDirectionClass();
+      return;
+    }
+
     const uriKey = `kubito${state.charAt(0).toUpperCase() + state.slice(1)}Uri`;
     const uri = (window as any)[uriKey] as string;
 
     if (uri) {
+      this.currentImageState = state;
+
+      // Simple direct assignment for all states - no special GIF restart logic
       this.kubito.src = uri;
+
+      // Update direction class
+      this.updateDirectionClass();
+    } else {
+      console.error(`No URI found for state: ${state}, key: ${uriKey}`);
     }
-
-    // Apply direction class based on state and current direction
-    // For jumping and idle, we want to maintain orientation but ensure clean state
-    const directionClass = this.direction === 1 ? 'walking-right' : 'walking-left';
-
-    // Always set the direction class, but ensure we're not conflicting with any state
-    this.kubito.className = directionClass;
 
     // Ensure consistent dimensions across all states to prevent clipping
     this.kubito.style.width = KUBITO_CONFIG.KUBITO_WIDTH + 'px';
@@ -924,10 +1024,10 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
    */
   private getImageUri(imageName: string): string {
     // Handle special cases for custom images
-    if (imageName === 'kubit_logo') {
+    if (imageName === 'kubit-logo') {
       return (window as any).kubitLogoUri as string;
     }
-    if (imageName === 'kubit_love') {
+    if (imageName === 'kubit-love') {
       return (window as any).kubitLoveUri as string;
     }
 
@@ -937,7 +1037,126 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Main animation loop
+   * Initialize wandering behavior with random duration
+   */
+  private initializeWanderingState(): void {
+    this.stateStartTime = Date.now();
+
+    if (this.kubitoState === KubitoState.WANDERING) {
+      this.currentStateDuration =
+        Math.random() * (KUBITO_CONFIG.WANDERING_MAX - KUBITO_CONFIG.WANDERING_MIN) +
+        KUBITO_CONFIG.WANDERING_MIN;
+    } else if (this.kubitoState === KubitoState.PAUSED) {
+      this.currentStateDuration =
+        Math.random() * (KUBITO_CONFIG.PAUSE_MAX - KUBITO_CONFIG.PAUSE_MIN) +
+        KUBITO_CONFIG.PAUSE_MIN;
+    } else if (this.kubitoState === KubitoState.TALKING) {
+      this.currentStateDuration = KUBITO_CONFIG.TALKING_DURATION;
+    }
+  }
+
+  /**
+   * Check if current movement state should transition
+   */
+  private shouldTransitionState(): boolean {
+    const elapsed = Date.now() - this.stateStartTime;
+    return elapsed >= this.currentStateDuration;
+  }
+
+  /**
+   * Transition to next movement state with minimal delays
+   */
+  private transitionKubitoState(): void {
+    if (this.isTransitioning) {
+      return; // Prevent rapid state changes
+    }
+
+    this.isTransitioning = true;
+
+    if (this.kubitoState === KubitoState.WANDERING) {
+      // Switch to paused state
+      this.kubitoState = KubitoState.PAUSED;
+      this.setKubitoImage('idle');
+
+      // Random chance to jump when entering pause (but not if we're about to talk)
+      // Also check if we're not in post-jump cooldown to avoid immediate jumps
+      const timeSinceLastJump = Date.now() - this.lastJumpTime;
+      const isInJumpCooldown = timeSinceLastJump < KUBITO_CONFIG.POST_JUMP_COOLDOWN;
+
+      const jumpRoll = Math.random();
+
+      if (jumpRoll < KUBITO_CONFIG.JUMP_CHANCE && !this.isShowingMessage && !isInJumpCooldown) {
+        // Small delay to let the idle state settle before jumping
+        setTimeout(() => {
+          this.triggerRandomJump();
+        }, 200);
+      }
+    } else if (this.kubitoState === KubitoState.PAUSED) {
+      // Switch to wandering state (only if not showing a message)
+      if (!this.isShowingMessage) {
+        this.kubitoState = KubitoState.WANDERING;
+        this.setKubitoImage('walking');
+
+        // Potentially change direction when starting to wander
+        if (Math.random() < 0.3) {
+          // 30% chance to change direction
+          this.direction *= -1;
+          this.updateDirectionClass();
+        }
+      } else {
+        // If showing a message, stay in talking state
+        this.kubitoState = KubitoState.TALKING;
+        // Don't change image - already showing idle for talking
+      }
+    } else if (this.kubitoState === KubitoState.TALKING) {
+      // After talking, go to pause briefly before wandering
+      if (!this.isShowingMessage) {
+        this.kubitoState = KubitoState.PAUSED;
+        // Don't change image if already idle
+        if (this.currentImageState !== 'idle') {
+          this.setKubitoImage('idle');
+        }
+        // Set a shorter pause after talking
+        this.currentStateDuration = KUBITO_CONFIG.POST_TALKING_PAUSE;
+        this.stateStartTime = Date.now();
+        this.isTransitioning = false;
+        return; // Don't call initializeWanderingState to keep the short duration
+      }
+    }
+
+    this.initializeWanderingState();
+    this.isTransitioning = false;
+  }
+
+  /**
+   * Trigger a random autonomous jump
+   */
+  private triggerRandomJump(): void {
+    if (this.isJumping) {
+      return; // Don't interrupt existing jump
+    }
+
+    this.isJumping = true;
+    this.jumpStartTime = Date.now();
+    this.jumpCompleted = false;
+    this.setKubitoImage('jumping');
+  }
+
+  /**
+   * Check if Kubito is in a safe zone for showing messages
+   * Safe zone is the center 90% of the container to avoid edge collisions
+   */
+  private isInSafeZone(): boolean {
+    const containerWidth = this.container.clientWidth;
+    const safeZoneStart = containerWidth * KUBITO_CONFIG.SAFE_ZONE_MARGIN;
+    const safeZoneEnd = containerWidth * (1 - KUBITO_CONFIG.SAFE_ZONE_MARGIN);
+
+    const kubitoCenter = this.position + KUBITO_CONFIG.KUBITO_WIDTH / 2;
+    return kubitoCenter >= safeZoneStart && kubitoCenter <= safeZoneEnd;
+  }
+
+  /**
+   * Main animation loop with wandering behavior
    */
   private animate(): void {
     if (this.isPaused) {
@@ -952,31 +1171,38 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
       return;
     }
 
-    const maxWidth = this.getMaxWidth();
-
-    // Only use predictive collision detection when NOT showing a message
-    // (to prevent constant direction changes with long messages)
-    if (!this.isShowingMessage && this.willCollideWithBoundary()) {
-      this.direction *= -1;
-      this.kubito.className = this.direction === 1 ? 'walking-right' : 'walking-left';
+    // Check if we should transition between wandering and paused states
+    if (this.shouldTransitionState()) {
+      this.transitionKubitoState();
     }
 
-    // Update position
-    this.position += this.speed * this.direction;
+    // Only move if in wandering state
+    if (this.kubitoState === KubitoState.WANDERING) {
+      const maxWidth = this.getMaxWidth();
 
-    // Fallback boundary checks (always active for safety)
-    if (this.position <= 0) {
-      this.position = 0;
-      this.direction = 1;
-      this.kubito.className = 'walking-right';
-    } else if (this.position >= maxWidth) {
-      this.position = maxWidth;
-      this.direction = -1;
-      this.kubito.className = 'walking-left';
+      // Boundary collision detection - change direction if about to hit edge
+      if (this.willCollideWithBoundary()) {
+        this.direction *= -1;
+        this.updateDirectionClass();
+      }
+
+      // Update position
+      this.position += this.speed * this.direction;
+
+      // Fallback boundary checks (always active for safety)
+      if (this.position <= 0) {
+        this.position = 0;
+        this.direction = 1;
+        this.updateDirectionClass();
+      } else if (this.position >= maxWidth) {
+        this.position = maxWidth;
+        this.direction = -1;
+        this.updateDirectionClass();
+      }
+
+      // Apply position
+      this.kubito.style.left = `${this.position}px`;
     }
-
-    // Apply position
-    this.kubito.style.left = `${this.position}px`;
 
     // Update message position if showing
     if (this.isShowingMessage) {
@@ -1029,12 +1255,12 @@ class KubitoWalker implements IKubitoAnimator, IAnimationState {
 }
 
 // Initialize when DOM is ready
-let kubitoWalker: KubitoWalker | null = null;
+let kubitoController: KubitoController | null = null;
 
 function initializeKubito(): void {
   try {
-    kubitoWalker = new KubitoWalker();
-    kubitoWalker.start();
+    kubitoController = new KubitoController();
+    kubitoController.start();
   } catch (error) {
     console.error('Failed to initialize Kubito:', error);
   }
@@ -1049,8 +1275,8 @@ if (document.readyState === 'loading') {
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-  if (kubitoWalker) {
-    kubitoWalker.stop();
+  if (kubitoController) {
+    kubitoController.stop();
   }
 });
 
@@ -1065,16 +1291,16 @@ window.addEventListener('message', event => {
         (window as any).kubitoConfig = message.config;
 
         // Refresh Kubito's configuration
-        if (kubitoWalker) {
-          kubitoWalker.refreshConfig();
+        if (kubitoController) {
+          kubitoController.refreshConfig();
         }
       }
       break;
 
     case 'showMessage':
       // Show a specific message triggered by events
-      if (message.message && kubitoWalker) {
-        kubitoWalker.showEventMessage(message.message);
+      if (message.message && kubitoController) {
+        kubitoController.showEventMessage(message.message);
       }
       break;
   }

@@ -13,11 +13,11 @@ media/
 ├── kubito.css           # Webview styles
 ├── kubito.js            # Compiled JavaScript from TypeScript
 ├── kubito.js.map        # Source map for debugging
-├── kubito_walking.gif   # Walking animation
-├── kubito_jumping.gif   # Jumping animation
-├── kubito_idle.png      # Idle sprite
-├── kubit_logo.png       # Custom message icon
-└── kubit_love.png       # Custom message icon
+├── kubito-walking.gif   # Walking animation
+├── kubito-jumping.gif   # Jumping animation
+├── kubito-idle.gif      # Idle animation
+├── kubit-logo.png       # Custom message icon
+└── kubit-love.png       # Custom message icon
 
 out/                     # Compiled extension files
 └── extension.js         # Compiled backend
@@ -44,46 +44,73 @@ out/                     # Compiled extension files
 
 ### **3. Message System**
 
-- **Auto-generation**: Messages appear every 5-10 seconds
+- **Auto-generation**: Messages appear every 3-7 seconds
 - **Dynamic Following**: Speech bubbles follow Kubito as he moves
 - **Smart Positioning**: Messages trigger direction changes to avoid edge
   collisions
 - **Priority Handling**: Jump interactions cancel active messages
 - **Content Types**: Emojis, text, and custom Kubit team images
 
-## 🎨 Animation States
+## 🎨 Animation States & Movement System
 
-### **State Machine**
+### **Enhanced State Machine**
 
 ```
-Walking ──click──→ Jumping ──1s──→ Idle ──300ms──→ Walking
-   ↑                                                  ↓
-   └─────────── Message Display (follows) ←──────────┘
+WANDERING ──timer(3-5s)──→ PAUSED ──timer(1-2.5s)──→ WANDERING
+    ↑                         ↓                          ↑
+    └── Message Display ──────┼── TALKING ──timer(3s)────┘
+                              ↓
+                        Jump(20% chance)
+                              ↓
+                          JUMPING ──800ms── → back to appropriate state
 ```
+
+### **Kubito States (KubitoState enum)**
+
+- **WANDERING**: Active movement at 0.15px/frame with boundary detection
+- **PAUSED**: Stationary state lasting 1-2.5 seconds, safe zone for messages
+- **JUMPING**: 800ms autonomous jump animation with cooldown system
+- **TALKING**: Message display state with Kubito paused and speech bubble following
 
 ### **Sprite Management**
 
-- **Walking State**: `kubito_walking.gif` - Continuous movement
-- **Jumping State**: `kubito_jumping.gif` - 1-second jump animation
-- **Idle State**: `kubito_idle.png` - 300ms static sprite after landing
+- **Walking State**: `kubito-walking.gif` - Smooth continuous movement animation
+- **Jumping State**: `kubito-jumping.gif` - 800ms jump sequence with landing
+- **Idle State**: `kubito-idle.gif` -  Idle animation
 - **Direction Classes**: `walking-right` / `walking-left` for CSS transforms
+
+### **Smart Timing System**
+
+- **Wandering Duration**: 3-5 seconds of active movement
+- **Pause Duration**: 1-2.5 seconds
+- **Jump Probability**: 20% chance when entering pause state
+- **Message Safe Zone**: 90% center area for optimal visibility
+- **Jump Cooldown**: 1-second buffer prevents message conflicts
 
 ## 🔄 Event Flow
 
-### **User Interaction**
+### **Autonomous Movement**
 
-1. User clicks Kubito → Cancel any active message
-2. Switch to jumping sprite → Set jumping state
-3. After 1s → Switch to idle sprite for 300ms
-4. Return to walking sprite → Resume movement
+1. **Wandering Phase**: Kubito moves at 0.15px/frame for 3-5 seconds
+2. **Transition to Pause**: Natural deceleration to stationary state
+3. **Pause Phase**: 1-2.5 seconds of idle animation in safe zone
+4. **Optional Jump**: 20% probability of autonomous jump with 800ms animation
+5. **Message Opportunity**: Messages only appear during pause in safe zone
+6. **Return to Wandering**: Cycle continues with potential direction changes
 
-### **Message Lifecycle**
+### **Smart Message System**
 
-1. Timer triggers (5-10s random) → Check if not jumping
-2. Show speech bubble → Set showing message state
-3. Follow Kubito's movement → Update bubble position each frame
-4. Check edge collision → Change Kubito direction if needed
-5. After 3s → Fade out bubble → Reset message state
+1. Timer triggers (3-7s random) → Validate conditions (paused + safe zone + no jump cooldown)
+2. Show speech bubble → Transition to TALKING state
+3. Follow Kubito's position → Maintain bubble alignment during pause
+4. Smart positioning → Prevent edge collisions with expanded safe zone
+5. After 3s → Fade out bubble → Brief pause before returning to wandering
+
+### **Performance Optimizations**
+
+1. **Efficient DOM Updates**: State tracking prevents unnecessary image changes
+2. **Frame-perfect Timing**: RequestAnimationFrame ensures 60fps smoothness
+3. **Memory Management**: Proper event cleanup and state management
 
 ## 🔧 Build Process
 
@@ -104,10 +131,9 @@ vsce package             # Creates .vsix file
 
 ## 🎯 Performance Optimizations
 
-- **60fps Animation Loop**: RequestAnimationFrame for smooth movement
-- **Efficient Updates**: Only update bubble position when message is active
-- **State Guards**: Prevent redundant operations with state checks
-- **Relaxed Speed**: 0.3px/frame for comfortable interaction
+- **60fps Animation Loop**: RequestAnimationFrame for smooth movement with intelligent state transitions
+- **Efficient State Updates**: KubitoState enum eliminates redundant DOM operations
+- **Optimized Movement Speed**: 0.15px/frame for natural, comfortable interaction
 - **Minimal DOM Manipulation**: Reuse elements when possible
 
 ## 🔒 Security Considerations
@@ -117,22 +143,9 @@ vsce package             # Creates .vsix file
 - **CSP Compliance**: Content Security Policy for web resources
 - **No External Dependencies**: All resources bundled locally
 
-## 🆕 v1.0.0 Features
-
-- **Professional Structure**: Follows Microsoft VS Code extension standards
-- **Comprehensive Testing**: 16 test cases covering all functionality
-- **Interactive Jumping**: Click-to-jump with priority over messages
-- **Smart Message Following**: Bubbles track Kubito's movement
-- **Collision Intelligence**: Direction changes to prevent edge collisions
-- **Multi-sprite System**: Walking, jumping, and idle animations
-- **Optimized Timing**: Improved animation speeds and durations
-- **Enhanced UX**: Hover effects and visual feedback
-- **Open Source Ready**: Clean code structure and documentation
-
 ## 📝 Development Notes
 
 - **TypeScript First**: Both backend and frontend use TypeScript
-- **Modular Design**: Clear separation between animation, messaging, and
   interaction
 - **Extensible**: Easy to add new sprites, messages, or behaviors
 - **VS Code Standards**: Follows VS Code extension development best practices
