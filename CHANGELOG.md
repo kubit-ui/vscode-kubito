@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-11-14
+
+### ✨ Waving State & Animation Optimization
+
+- **👋 Waving Greeting Animation** - Kubito now waves when the extension loads, creating a friendly first impression before starting to wander
+- **🎯 Smooth State Transitions** - New WAVING state (1.5 second duration) smoothly transitions to wandering behavior
+- **⚙️ Optimized Animation Timings** - Further refined movement speed and behavior patterns for a less distracting experience:
+  - Movement speed reduced from 0.15 to 0.08 pixels/frame for subtler animations
+  - Wandering duration increased from 3-5s to 4-8s for more relaxed pacing
+  - Pause duration: 1-2.5s range for state balance
+  - Jump probability: 20% chance during pause state
+  - Safe zone: 70% center area for better message positioning
+
 ## [2.3.0] - 2025-11-13
 
 ### ✨ Enhanced Movement & Animation System
