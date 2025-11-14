@@ -288,6 +288,7 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
         window.kubitoWalkingUri = "${resourceUris.walkingGif}";
         window.kubitoJumpingUri = "${resourceUris.jumpingGif}";
         window.kubitoIdleUri = "${resourceUris.idleGif}";
+        window.kubitoWavingUri = "${resourceUris.wavingGif}";
 
         // Store translations to be used by the main script
         window.kubitoTranslations = ${JSON.stringify(getCurrentTranslations().messages)};
@@ -365,6 +366,7 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
       walkingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-walking.gif')),
       jumpingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-jumping.gif')),
       idleGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-idle.gif')),
+      wavingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-waving.gif')),
 
       // Styles and scripts
       css: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.css')),

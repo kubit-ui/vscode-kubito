@@ -32,6 +32,7 @@ enum TimeContext {
  * Kubito states for natural wandering behavior
  */
 enum KubitoState {
+  WAVING = 'waving', // Initial greeting animation
   WANDERING = 'wandering', // Moving around
   PAUSED = 'paused', // Standing still/idle
   JUMPING = 'jumping', // Jump animation
@@ -183,22 +184,25 @@ interface IKubitoAnimator {
  */
 const KUBITO_CONFIG = {
   // Movement settings
-  SPEED: 0.15, // Reduced speed for more natural, slower wandering (was 0.2)
+  SPEED: 0.08, // Movement speed in pixels per frame
 
   // Wandering behavior timing
-  WANDERING_MIN: 3000, // Minimum wandering time (3 seconds) - reduced
-  WANDERING_MAX: 5000, // Maximum wandering time (5 seconds) - reduced
-  PAUSE_MIN: 1000, // Minimum pause time (1 second) - significantly reduced
-  PAUSE_MAX: 2500, // Maximum pause time (2.5 seconds) - significantly reduced
+  WANDERING_MIN: 4000, // Minimum wandering time (4 seconds)
+  WANDERING_MAX: 8000, // Maximum wandering time (8 seconds
+  PAUSE_MIN: 1000, // Minimum pause time (1 second)
+  PAUSE_MAX: 2500, // Maximum pause time (2.5 seconds)
+
+  // Waving behavior
+  WAVING_DURATION: 1500, // Duration of initial greeting wave (1.5 seconds)
 
   // Jump behavior
-  JUMP_CHANCE: 0.2, // 20% chance of jumping when entering pause (reduced from 30% for more messages)
-  JUMP_DURATION: 800, // Jump animation duration in milliseconds
-  POST_JUMP_COOLDOWN: 1000, // Cooldown after jump before messages can appear (1 second) - reduced
+  JUMP_CHANCE: 0.2, // 20% chance of jumping when entering pause
+  JUMP_DURATION: 800, // Jump animation duration (800 milliseconds)
+  POST_JUMP_COOLDOWN: 1000, // Cooldown after jump before next jump (1 second)
 
   // Talking behavior
-  TALKING_DURATION: 3000, // How long to stay in talking state (4 seconds) - increased
-  POST_TALKING_PAUSE: 100, // Short pause after talking before returning to normal (1.5 seconds)
+  TALKING_DURATION: 3000, // How long to stay in talking state (3 seconds)
+  POST_TALKING_PAUSE: 100, // Short pause after talking before returning to normal (100 milliseconds)
 
   // State transition delays (to prevent visual glitches)
   TRANSITION_DELAY: 150, // Small delay between state changes (150ms)
@@ -213,8 +217,8 @@ const KUBITO_CONFIG = {
   KUBITO_WIDTH: 36, // Kubito sprite width in pixels
   KUBITO_HEIGHT: 36, // Kubito sprite height in pixels
 
-  // Safe zone for messages (expanded area for more message opportunities)
-  SAFE_ZONE_MARGIN: 0.05 // 5% margin on each side = 90% center safe zone (increased from 80%)
+  // Safe zone for messages
+  SAFE_ZONE_MARGIN: 0.15 // 15% margin on each side = 70% center safe zone
 } as const;
 
 /**
@@ -222,8 +226,8 @@ const KUBITO_CONFIG = {
  * Controls timing, sizing, and display behavior of Kubito's messages
  */
 const MESSAGE_CONFIG = {
-  DELAY_MIN: 3000, // Minimum delay between messages (3 seconds) - more frequent for better engagement
-  DELAY_MAX: 7000, // Maximum delay between messages (7 seconds) - reduced from 10s
+  DELAY_MIN: 3000, // Minimum delay between messages (3 seconds)
+  DELAY_MAX: 7000, // Maximum delay between messages (7 seconds)
   DURATION: 3000, // How long each message stays visible (3 seconds)
   WIDTH_THRESHOLD: 0.8, // Container width ratio for line wrapping
   WIDTH_MAX: 1.0, // Maximum width ratio before truncation
@@ -548,13 +552,16 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
     this.kubito = kubitoElement as HTMLImageElement;
     this.container = containerElement as HTMLElement;
 
+    // Set initial position to center of container
+    this.position = this.getCenterPosition();
+
     // Initialize all subsystems
     this.setupEventListeners();
     this.setupRandomMessages();
     this.setupDynamicHeight();
 
-    // Initialize wandering behavior
-    this.initializeWanderingState();
+    // Initialize with WAVING state for greeting
+    this.initializeWavingState();
   }
 
   /**
@@ -580,7 +587,19 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
 
     // Force adjustment with a slight delay
     setTimeout(adjustHeight, 100);
-  } /**
+  }
+
+  /**
+   * Calculate the center position of the container
+   * Returns the X position that centers Kubito horizontally
+   */
+  private getCenterPosition(): number {
+    const containerWidth = this.container.clientWidth || 300; // Fallback width
+    const kubitoWidth = KUBITO_CONFIG.KUBITO_WIDTH;
+    return (containerWidth - kubitoWidth) / 2;
+  }
+
+  /**
    * Calculate the maximum width for movement
    */
   private getMaxWidth(): number {
@@ -987,7 +1006,7 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   /**
    * Set Kubito's image based on state with optimized change detection
    */
-  private setKubitoImage(state: 'walking' | 'jumping' | 'idle'): void {
+  private setKubitoImage(state: 'walking' | 'jumping' | 'idle' | 'waving'): void {
     // Avoid unnecessary image changes to prevent flicker
     if (this.currentImageState === state) {
       // Still update direction class in case direction changed
@@ -1037,6 +1056,19 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   }
 
   /**
+   * Initialize waving state for initial greeting
+   */
+  private initializeWavingState(): void {
+    this.kubitoState = KubitoState.WAVING;
+    this.stateStartTime = Date.now();
+    this.currentStateDuration = KUBITO_CONFIG.WAVING_DURATION;
+    this.setKubitoImage('waving');
+
+    // Update visual position immediately
+    this.kubito.style.left = this.position + 'px';
+  }
+
+  /**
    * Initialize wandering behavior with random duration
    */
   private initializeWanderingState(): void {
@@ -1052,6 +1084,8 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
         KUBITO_CONFIG.PAUSE_MIN;
     } else if (this.kubitoState === KubitoState.TALKING) {
       this.currentStateDuration = KUBITO_CONFIG.TALKING_DURATION;
+    } else if (this.kubitoState === KubitoState.WAVING) {
+      this.currentStateDuration = KUBITO_CONFIG.WAVING_DURATION;
     }
   }
 
@@ -1073,7 +1107,11 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
 
     this.isTransitioning = true;
 
-    if (this.kubitoState === KubitoState.WANDERING) {
+    if (this.kubitoState === KubitoState.WAVING) {
+      // After waving, transition to wandering state
+      this.kubitoState = KubitoState.WANDERING;
+      this.setKubitoImage('walking');
+    } else if (this.kubitoState === KubitoState.WANDERING) {
       // Switch to paused state
       this.kubitoState = KubitoState.PAUSED;
       this.setKubitoImage('idle');
@@ -1097,9 +1135,9 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
         this.kubitoState = KubitoState.WANDERING;
         this.setKubitoImage('walking');
 
-        // Potentially change direction when starting to wander
-        if (Math.random() < 0.3) {
-          // 30% chance to change direction
+        // Potentially change direction when starting to wander - reduced frequency
+        if (Math.random() < 0.4) {
+          // 15% chance to change direction
           this.direction *= -1;
           this.updateDirectionClass();
         }
@@ -1176,7 +1214,7 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
       this.transitionKubitoState();
     }
 
-    // Only move if in wandering state
+    // Only move if in wandering state (not during waving, paused, or talking)
     if (this.kubitoState === KubitoState.WANDERING) {
       const maxWidth = this.getMaxWidth();
 

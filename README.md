@@ -8,8 +8,8 @@
 
 ## ✨ What Kubito Does
 
-- 🤖 **Walks Around**: Kubito continuously walks back and forth in your Explorer
-- 🦘 **Autonomous Fun**: Kubito jumps, talks and pauses randomly
+- 🤖 **Walks Around**: Kubito walks back and forth in your Explorer
+- 🦘 **Autonomous Fun**: Kubito waves, jumps, talks and pauses randomly
 - 💬 **Smart Messages**: Context-aware messages that adapt to time and day
   (Monday Blues, Friday Feeling, Working Late)
  - 📁 **Development Reactions**: Kubito reacts to your coding activities - file saves, Git commits, and pushes with contextual messages
@@ -22,7 +22,7 @@
 1. **Install** → Search "Kubito" in VS Code Extensions and click Install
 2. **Find Him** → Look for "Kubito" section in your Explorer sidebar (left panel)
 3. **Expand & Watch** → Click to expand if collapsed and watch Kubito start walking
-4. **Code!**: Kubito reacts to your development workflow - save files, commit, or push to Git and see his responses!
+4. **Code**: Kubito reacts to your development workflow - save files, commit, or push to Git and see his responses!
 
 ## 🎮 How to Interact
 
@@ -51,20 +51,13 @@ Configure Kubito's responses to your development activities:
 - **Git Commit Reactions** → Show reactions when making Git commits _(default: on)_
 - **Git Push Reactions** → Show reactions when pushing to Git remotes _(default: on)_
 
-> 💡 **Tip**: Use the `Kubito: Configure Event Reactions` command to quickly access these settings!
-
-## 🎬 Demo
-
-_Coming soon: Watch Kubito in action with a demo video showing all his cute
-animations and interactions!_
-
 ## 💡 Tips & Tricks
 
 - **Can't see Kubito?** Make sure your Explorer panel is open (folder icon in sidebar)
 - **Section collapsed?** Click the arrow next to "Kubito" to expand
 - **Want more space?** You can resize the Explorer panel by dragging its edge
-- **Too many reactions?** You can disable file save, commit, or push reactions in Settings → Extensions → Kubito
 - **Want to see event reactions?** Try saving a file or making a Git commit - Kubito will celebrate with you!
+- **Too many reactions?** You can disable file save, commit, or push reactions in Settings → Extensions → Kubito
 
 ## 🤝 Support & Feedback
 
@@ -78,4 +71,4 @@ If you enjoy this extension, please consider leaving a ⭐ rating
 Inspired by the VS Code Pets extension and the need for a personal Kubito while
 coding!
 
-Made with ❤️ by the Kubit team for coding enthusiasts everywhere.
+Made with ❤️ by the Kubit team.

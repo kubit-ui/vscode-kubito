@@ -9,6 +9,7 @@ src/
     ├── tsconfig.json     # TypeScript config for webview
     └── kubito.ts         # Webview frontend (DOM/Browser APIs)
 
+```
 media/
 ├── kubito.css           # Webview styles
 ├── kubito.js            # Compiled JavaScript from TypeScript
@@ -16,8 +17,10 @@ media/
 ├── kubito-walking.gif   # Walking animation
 ├── kubito-jumping.gif   # Jumping animation
 ├── kubito-idle.gif      # Idle animation
+├── kubito-waving.gif    # Waving greeting animation
 ├── kubit-logo.png       # Custom message icon
 └── kubit-love.png       # Custom message icon
+```
 
 out/                     # Compiled extension files
 └── extension.js         # Compiled backend
@@ -56,54 +59,60 @@ out/                     # Compiled extension files
 ### **Enhanced State Machine**
 
 ```
-WANDERING ──timer(3-5s)──→ PAUSED ──timer(1-2.5s)──→ WANDERING
-    ↑                         ↓                          ↑
-    └── Message Display ──────┼── TALKING ──timer(3s)────┘
-                              ↓
-                        Jump(20% chance)
-                              ↓
-                          JUMPING ──800ms── → back to appropriate state
+WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED ──timer(1-2.5s)──→ WANDERING
+(startup only)             ↑                          ↓                          ↑
+                           └── Message Display ──────┼── TALKING ──timer(3s)────┘
+                                                      ↓
+                                                Jump(20% chance)
+                                                      ↓
+                                                  JUMPING ──800ms── → back to appropriate state
 ```
 
 ### **Kubito States (KubitoState enum)**
 
-- **WANDERING**: Active movement at 0.15px/frame with boundary detection
+- **WAVING**: Initial greeting state (1.5 seconds) when extension loads, centered and stationary
+- **WANDERING**: Active movement at 0.08px/frame with boundary detection and potential direction changes
 - **PAUSED**: Stationary state lasting 1-2.5 seconds, safe zone for messages
 - **JUMPING**: 800ms autonomous jump animation with cooldown system
 - **TALKING**: Message display state with Kubito paused and speech bubble following
 
 ### **Sprite Management**
 
+- **Waving State**: `kubito-waving.gif` - Friendly greeting animation
 - **Walking State**: `kubito-walking.gif` - Smooth continuous movement animation
-- **Jumping State**: `kubito-jumping.gif` - 800ms jump sequence with landing
+- **Jumping State**: `kubito-jumping.gif` - Jump sequence with landing
 - **Idle State**: `kubito-idle.gif` -  Idle animation
 - **Direction Classes**: `walking-right` / `walking-left` for CSS transforms
 
 ### **Smart Timing System**
 
-- **Wandering Duration**: 3-5 seconds of active movement
+- **Waving Duration**: 1.5 seconds on extension load
+- **Wandering Duration**: 4-8 seconds of active movement
 - **Pause Duration**: 1-2.5 seconds
 - **Jump Probability**: 20% chance when entering pause state
-- **Message Safe Zone**: 90% center area for optimal visibility
-- **Jump Cooldown**: 1-second buffer prevents message conflicts
+- **Message Safe Zone**: 70% center area for optimal visibility and collision avoidance
+- **Jump Cooldown**: 1-second buffer prevents jumps in rapid succession
+- **Movement Speed**: 0.08px/frame for smooth, non-distracting motion
 
 ## 🔄 Event Flow
 
-### **Autonomous Movement**
+### **Autonomous Movement Cycle**
 
-1. **Wandering Phase**: Kubito moves at 0.15px/frame for 3-5 seconds
-2. **Transition to Pause**: Natural deceleration to stationary state
-3. **Pause Phase**: 1-2.5 seconds of idle animation in safe zone
-4. **Optional Jump**: 20% probability of autonomous jump with 800ms animation
-5. **Message Opportunity**: Messages only appear during pause in safe zone
-6. **Return to Wandering**: Cycle continues with potential direction changes
+1. **Waving Phase** (1.5s): Extension loads → Kubito waves greeting from center position
+2. **Transition to Wandering**: After waving completes → Kubito begins walking with potential direction change
+3. **Wandering Phase**: Kubito moves at 0.08px/frame for 4-8 seconds
+4. **Transition to Pause**: Natural deceleration to stationary state
+5. **Pause Phase**: 1-2.5 seconds of idle animation in safe zone
+6. **Optional Jump**: 20% probability of autonomous jump with 800ms animation
+7. **Message Opportunity**: Messages only appear during pause in safe zone
+8. **Return to Wandering**: Cycle continues with potential direction changes
 
 ### **Smart Message System**
 
-1. Timer triggers (3-7s random) → Validate conditions (paused + safe zone + no jump cooldown)
+1. Timer triggers (3-7s random) → Validate conditions (paused + safe zone)
 2. Show speech bubble → Transition to TALKING state
 3. Follow Kubito's position → Maintain bubble alignment during pause
-4. Smart positioning → Prevent edge collisions with expanded safe zone
+4. Smart positioning → Prevent edge collisions with 70% center safe zone
 5. After 3s → Fade out bubble → Brief pause before returning to wandering
 
 ### **Performance Optimizations**
@@ -133,8 +142,9 @@ vsce package             # Creates .vsix file
 
 - **60fps Animation Loop**: RequestAnimationFrame for smooth movement with intelligent state transitions
 - **Efficient State Updates**: KubitoState enum eliminates redundant DOM operations
-- **Optimized Movement Speed**: 0.15px/frame for natural, comfortable interaction
+- **Optimized Movement Speed**: 0.08px/frame for natural, non-distracting interaction
 - **Minimal DOM Manipulation**: Reuse elements when possible
+- **Smart Safe Zone**: 70% center area reduces collision detection overhead
 
 ## 🔒 Security Considerations
 
