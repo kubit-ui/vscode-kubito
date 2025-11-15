@@ -12,17 +12,26 @@
 - 🦘 **Autonomous Fun**: Kubito waves, jumps, talks and pauses randomly
 - 💬 **Smart Messages**: Context-aware messages that adapt to time and day
   (Monday Blues, Friday Feeling, Working Late)
- - 📁 **Development Reactions**: Kubito reacts to your coding activities - file saves, Git commits, and pushes with contextual messages
-- 🌍 **6 Languages**: Full support for English, Spanish, French, German,
-  Portuguese, and Italian
-
+- 📁 **Development Reactions**: Kubito reacts to your coding activities - file
+  saves, Git commits, and pushes with contextual messages
+- 📊 **Productivity Tracking**: Smart reminders for breaks and water, plus
+  coding metrics to track your productivity
+- 🏆 **Coding Metrics**: Track lines of code, session time, and get productivity
+  insights
+- 🌍 **14 Languages**: Multilingual support for a global audience:
+  - 🇪🇸 Spanish • 🇺🇸 English • 🇫🇷 French • 🇩🇪 German • 🇵🇹 Portuguese • 🇮🇹 Italian
+  - 🇯🇵 Japanese • 🇰🇷 Korean • 🇨🇳 Chinese • 🇷🇺 Russian • 🇳🇱 Dutch • 🇵🇱 Polish
+  - 🇸🇦 Arabic • 🇹🇷 Turkish
 
 ## 🚀 Getting Started
 
 1. **Install** → Search "Kubito" in VS Code Extensions and click Install
-2. **Find Him** → Look for "Kubito" section in your Explorer sidebar (left panel)
-3. **Expand & Watch** → Click to expand if collapsed and watch Kubito start walking
-4. **Code**: Kubito reacts to your development workflow - save files, commit, or push to Git and see his responses!
+2. **Find Him** → Look for "Kubito" section in your Explorer sidebar (left
+   panel)
+3. **Expand & Watch** → Click to expand if collapsed and watch Kubito start
+   walking
+4. **Code**: Kubito reacts to your development workflow - save files, commit, or
+   push to Git and see his responses!
 
 ## 🎮 How to Interact
 
@@ -30,9 +39,11 @@
 | ---------------------- | ----------------------------------------------- |
 | 👀 **Hover over him**  | See a nice glow effect                          |
 | ⏰ **Watch and wait**  | Kubito autonomously walks, pauses, and jumps    |
-| 💾 **Save a file**     | Kubito shows encouraging save reactions          |
+| 💾 **Save a file**     | Kubito shows encouraging save reactions         |
 | ✅ **Git commit**      | Kubito celebrates your commits with messages    |
 | 🚀 **Git push**        | Kubito cheers when you push your code!          |
+| 💧 **Productivity**    | Kubito reminds you to take breaks, drink water  |
+| 📊 **View Metrics**    | Use "Kubito: Show Productivity Metrics" command |
 | 🌍 **Change language** | Messages adapt to your preferred language       |
 | 📁 **Expand/Collapse** | Control Kubito's section like any sidebar panel |
 
@@ -41,23 +52,75 @@
 Access in: `Settings > Extensions > Kubito`
 
 - **Auto Show** → Automatically show Kubito when opening VS Code _(default: on)_
-- **Language** → Choose from 6 languages or auto-detect from VS Code _(default: auto)_
-- **Contextual Messages** → Show time and day-appropriate messages _(default: on)_
+- **Language** → Choose from 14 languages or auto-detect from VS Code _(default:
+  auto)_
+- **Contextual Messages** → Show time and day-appropriate messages _(default:
+  on)_
 
 ### 🎬 Event Reactions
+
 Configure Kubito's responses to your development activities:
 
 - **File Save Reactions** → Show reactions when saving files _(default: on)_
-- **Git Commit Reactions** → Show reactions when making Git commits _(default: on)_
-- **Git Push Reactions** → Show reactions when pushing to Git remotes _(default: on)_
+- **Git Commit Reactions** → Show reactions when making Git commits _(default:
+  on)_
+- **Git Push Reactions** → Show reactions when pushing to Git remotes _(default:
+  on)_
+
+### 🚀 Productivity Features
+
+Enhance your coding workflow with intelligent reminders and metrics:
+
+- **Smart Reminders** → Enable break, water, and posture reminders _(default:
+  on)_
+- **Break Interval** → Minutes between break reminders (15-120) _(default: 30)_
+- **Water Interval** → Minutes between water reminders (20-180) _(default: 45)_
+- **Show Metrics** → Display coding metrics like lines written and session time
+  _(default: on)_
+- **Metrics Interval** → Minutes between metrics updates (30-300)
+  _(default: 60)_
+
+## 🌍 Supported Languages
+
+Kubito speaks your language! All messages, reminders, and productivity features
+are fully localized in:
+
+### Western Languages
+
+- 🇪🇸 **Spanish** (Español) - Native support
+- 🇺🇸 **English** - Native support
+- 🇫🇷 **French** (Français) - Native support
+- 🇩🇪 **German** (Deutsch) - Native support
+- 🇵🇹 **Portuguese** (Português) - Native support
+- 🇮🇹 **Italian** (Italiano) - Native support
+- 🇳🇱 **Dutch** (Nederlands) - Native support
+
+### Eastern Languages
+
+- 🇯🇵 **Japanese** (日本語) - Full localization
+- 🇰🇷 **Korean** (한국어) - Full localization
+- 🇨🇳 **Chinese Simplified** (中文简体) - Full localization
+- 🇷🇺 **Russian** (Русский) - Full localization
+
+### Additional Languages
+
+- 🇵🇱 **Polish** (Polski) - Full localization
+- 🇸🇦 **Arabic** (العربية) - Full localization (RTL supported)
+- 🇹🇷 **Turkish** (Türkçe) - Full localization
+
+Kubito automatically detects your VS Code language setting, or you can manually
+select your preferred language in the extension settings.
 
 ## 💡 Tips & Tricks
 
-- **Can't see Kubito?** Make sure your Explorer panel is open (folder icon in sidebar)
+- **Can't see Kubito?** Make sure your Explorer panel is open (folder icon in
+  sidebar)
 - **Section collapsed?** Click the arrow next to "Kubito" to expand
 - **Want more space?** You can resize the Explorer panel by dragging its edge
-- **Want to see event reactions?** Try saving a file or making a Git commit - Kubito will celebrate with you!
-- **Too many reactions?** You can disable file save, commit, or push reactions in Settings → Extensions → Kubito
+- **Want to see event reactions?** Try saving a file or making a Git commit -
+  Kubito will celebrate with you!
+- **Too many reactions?** You can disable file save, commit, or push reactions
+  in Settings → Extensions → Kubito
 
 ## 🤝 Support & Feedback
 

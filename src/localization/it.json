@@ -82,6 +82,22 @@
     "cloud": "Nel cloud ☁️",
     "serverless": "Serverless (ma ci sono server) 🤫"
   },
+  "productivity": {
+    "reminders": {
+      "break": "Tempo per una pausa! 🧘‍♂️",
+      "water": "Rimani idratato! 💧",
+      "posture": "Controlla la tua postura! 🪑",
+      "eyes": "Fai riposare gli occhi - guarda lontano per 20 secondi! 👀"
+    },
+    "metrics": {
+      "sessionDuration": "Durata sessione",
+      "linesPerHour": "righe/ora",
+      "filesModified": "file modificati",
+      "productivityScore": "Punteggio",
+      "mostActiveLanguage": "Linguaggio principale",
+      "noMetrics": "Nessuna metrica disponibile ancora. Inizia a programmare per vedere le tue statistiche!"
+    }
+  },
   "commands": {
     "show": "Mostra Kubito",
     "hide": "Nascondi Kubito"
