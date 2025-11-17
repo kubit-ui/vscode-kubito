@@ -12,6 +12,14 @@ import frTranslations from './fr.json';
 import deTranslations from './de.json';
 import ptTranslations from './pt.json';
 import itTranslations from './it.json';
+import jaTranslations from './ja.json';
+import koTranslations from './ko.json';
+import zhCnTranslations from './zh-cn.json';
+import ruTranslations from './ru.json';
+import nlTranslations from './nl.json';
+import plTranslations from './pl.json';
+import trTranslations from './tr.json';
+import arTranslations from './ar.json';
 
 /**
  * Supported languages interface with all available messages
@@ -119,7 +127,15 @@ const TRANSLATIONS: Record<string, ITranslations> = {
   fr: frTranslations,
   de: deTranslations,
   pt: ptTranslations,
-  it: itTranslations
+  it: itTranslations,
+  ja: jaTranslations,
+  ko: koTranslations,
+  'zh-cn': zhCnTranslations,
+  ru: ruTranslations,
+  nl: nlTranslations,
+  pl: plTranslations,
+  tr: trTranslations,
+  ar: arTranslations
 } as const;
 
 /**
@@ -150,10 +166,34 @@ export function detectVSCodeLanguage(): SupportedLanguage {
       return DEFAULT_LANGUAGE;
     }
 
-    // Extract the base language code (e.g., 'es-ES' -> 'es')
-    const baseLanguage = vscodeLanguage.split('-')[0]?.toLowerCase();
+    // Normalize the language code
+    const normalizedLanguage = vscodeLanguage.toLowerCase();
 
-    // Check if we support this language
+    // Check for exact match first (e.g., 'zh-cn')
+    if (normalizedLanguage in TRANSLATIONS) {
+      return normalizedLanguage as SupportedLanguage;
+    }
+
+    // Handle special cases
+    const languageMapping: Record<string, SupportedLanguage> = {
+      'zh-hans': 'zh-cn',
+      'zh-cn': 'zh-cn',
+      'zh-sg': 'zh-cn',
+      zh: 'zh-cn',
+      ja: 'ja',
+      ko: 'ko',
+      ar: 'ar',
+      he: 'ar' // Hebrew uses RTL like Arabic
+    };
+
+    if (normalizedLanguage in languageMapping) {
+      return languageMapping[normalizedLanguage]!;
+    }
+
+    // Extract the base language code (e.g., 'es-ES' -> 'es')
+    const baseLanguage = normalizedLanguage.split('-')[0];
+
+    // Check if we support this base language
     if (baseLanguage && baseLanguage in TRANSLATIONS) {
       return baseLanguage as SupportedLanguage;
     }

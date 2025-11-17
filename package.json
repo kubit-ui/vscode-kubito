@@ -1,7 +1,7 @@
 {
   "name": "vscode-kubito",
   "displayName": "Kubito - Your Coding Companion",
-  "description": "An interactive and animated multilingual companion for your VS Code editor. Kubito walks around, responds to clicks, and shows contextual programming messages that adapt to time and day in 6 languages.",
+  "description": "An interactive and animated multilingual companion for your VS Code editor. Kubito walks around, responds to clicks, and shows contextual programming messages that adapt to time and day in 14 languages including productivity reminders.",
   "version": "2.4.0",
   "publisher": "Kubit",
   "author": {
@@ -65,6 +65,10 @@
       {
         "command": "kubito.openEventSettings",
         "title": "Kubito: Configure Event Reactions"
+      },
+      {
+        "command": "kubito.showMetrics",
+        "title": "Kubito: Show Productivity Metrics"
       }
     ],
     "configuration": {
@@ -84,7 +88,15 @@
             "fr",
             "de",
             "pt",
-            "it"
+            "it",
+            "ja",
+            "ko",
+            "zh-cn",
+            "ru",
+            "nl",
+            "pl",
+            "tr",
+            "ar"
           ],
           "enumDescriptions": [
             "Detect from VS Code language",
@@ -93,7 +105,15 @@
             "Français",
             "Deutsch",
             "Português",
-            "Italiano"
+            "Italiano",
+            "日本語",
+            "한국어",
+            "中文(简体)",
+            "Русский",
+            "Nederlands",
+            "Polski",
+            "Türkçe",
+            "العربية"
           ],
           "default": "auto",
           "description": "Language for Kubito messages"
@@ -117,6 +137,37 @@
           "type": "boolean",
           "default": true,
           "description": "Show reactions when pushing to Git remotes"
+        },
+        "kubito.productivity.reminders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable smart reminders for breaks, water, and active pauses"
+        },
+        "kubito.productivity.breakInterval": {
+          "type": "number",
+          "default": 30,
+          "minimum": 15,
+          "maximum": 120,
+          "description": "Minutes between break reminders (15-120)"
+        },
+        "kubito.productivity.waterInterval": {
+          "type": "number",
+          "default": 45,
+          "minimum": 20,
+          "maximum": 180,
+          "description": "Minutes between water reminders (20-180)"
+        },
+        "kubito.productivity.showMetrics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show coding metrics like lines written and session time"
+        },
+        "kubito.productivity.metricsInterval": {
+          "type": "number",
+          "default": 60,
+          "minimum": 30,
+          "maximum": 300,
+          "description": "Minutes between metrics updates (30-300)"
         }
       }
     }

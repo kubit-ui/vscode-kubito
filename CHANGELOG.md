@@ -6,13 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-11-15
+
+### 🚀 Productivity & Wellness Features
+
+- **🧘‍♂️ Smart Reminders** - Kubito now reminds you to take breaks, drink water,
+  check posture, and rest your eyes with configurable intervals
+- **📊 Coding Metrics** - Track your productivity with real-time metrics
+  including:
+  - Session duration and active coding time
+  - Lines written per hour
+  - Files modified count
+  - Productivity score (0-100)
+  - Most active programming language
+- **⚙️ Productivity Configuration** - New settings to customize:
+  - Break reminder intervals (15-120 minutes, default: 30)
+  - Water reminder intervals (20-180 minutes, default: 45)
+  - Metrics display intervals (30-300 minutes, default: 60)
+  - Enable/disable individual reminder types
+- **🎯 Productivity Command** - New "Kubito: Show Productivity Metrics" command
+  to view detailed stats
+- **🌍 Expanded Language Support** - Kubito now supports **14 languages**:
+  - 🇪🇸 Spanish (Español)
+  - 🇺🇸 English
+  - 🇫🇷 French (Français)
+  - 🇩🇪 German (Deutsch)
+  - 🇵🇹 Portuguese (Português)
+  - 🇮🇹 Italian (Italiano)
+  - 🇯🇵 Japanese (日本語) - **NEW**
+  - 🇰🇷 Korean (한국어) - **NEW**
+  - 🇨🇳 Chinese Simplified (中文简体) - **NEW**
+  - 🇷🇺 Russian (Русский) - **NEW**
+  - 🇳🇱 Dutch (Nederlands) - **NEW**
+  - 🇵🇱 Polish (Polski) - **NEW**
+  - 🇸🇦 Arabic (العربية) - **NEW**
+  - 🇹🇷 Turkish (Türkçe) - **NEW**
+- **🎭 Intelligent Tracking** - Automatic activity detection with idle timeout
+  to ensure accurate metrics
+
+### 🔧 Technical Improvements
+
+- **📦 Modular Architecture** - New ProductivityManager class for clean
+  separation of concerns
+- **⚡️ Performance Optimization** - Efficient event tracking with proper
+  cleanup and resource management
+- **🛡️ Type Safety** - Full TypeScript implementation with comprehensive
+  interfaces
+
 ## [2.4.0] - 2025-11-14
 
 ### ✨ Waving State & Animation Optimization
 
-- **👋 Waving Greeting Animation** - Kubito now waves when the extension loads, creating a friendly first impression before starting to wander
-- **🎯 Smooth State Transitions** - New WAVING state (1.5 second duration) smoothly transitions to wandering behavior
-- **⚙️ Optimized Animation Timings** - Further refined movement speed and behavior patterns for a less distracting experience:
+- **👋 Waving Greeting Animation** - Kubito now waves when the extension loads,
+  creating a friendly first impression before starting to wander
+- **🎯 Smooth State Transitions** - New WAVING state (1.5 second duration)
+  smoothly transitions to wandering behavior
+- **⚙️ Optimized Animation Timings** - Further refined movement speed and
+  behavior patterns for a less distracting experience:
   - Movement speed reduced from 0.15 to 0.08 pixels/frame for subtler animations
   - Wandering duration increased from 3-5s to 4-8s for more relaxed pacing
   - Pause duration: 1-2.5s range for state balance
@@ -23,26 +73,37 @@ and this project adheres to
 
 ### ✨ Enhanced Movement & Animation System
 
-- **🎮 Natural Wandering Behavior** - Kubito now follows realistic movement patterns with alternating wandering and pause states
-- **⚡️ Optimized Movement Speed** - Reduced movement speed from 0.2 to 0.15 pixels/frame for more natural, relaxed pacing
-- **🔄 Smart State Management** - New KubitoState system (WANDERING, PAUSED, JUMPING, TALKING) with intelligent transitions
-- **🎪 Autonomous Jump Behavior** - Kubito now occasionally jumps on his own with 20% probability during pause states
-
+- **🎮 Natural Wandering Behavior** - Kubito now follows realistic movement
+  patterns with alternating wandering and pause states
+- **⚡️ Optimized Movement Speed** - Reduced movement speed from 0.2 to 0.15
+  pixels/frame for more natural, relaxed pacing
+- **🔄 Smart State Management** - New KubitoState system (WANDERING, PAUSED,
+  JUMPING, TALKING) with intelligent transitions
+- **🎪 Autonomous Jump Behavior** - Kubito now occasionally jumps on his own
+  with 20% probability during pause states
 
 ### 🛠️ Technical Improvements
-- **🏗️ Better Architecture** - Clean separation between movement states, timing logic, and visual updates
-- **🎯 Message Logic** - Smart timing ensures messages only appear during paused state in safe zone (3-7 second intervals)
-- **⏱️ Jump Cooldown** - 1-second cooldown after jumps prevents message conflicts
-- **🎨 Asset Consistency** - Renamed assets from `kubito_*` to `kubito-*` format for consistency
+
+- **🏗️ Better Architecture** - Clean separation between movement states, timing
+  logic, and visual updates
+- **🎯 Message Logic** - Smart timing ensures messages only appear during paused
+  state in safe zone (3-7 second intervals)
+- **⏱️ Jump Cooldown** - 1-second cooldown after jumps prevents message
+  conflicts
+- **🎨 Asset Consistency** - Renamed assets from `kubito_*` to `kubito-*` format
+  for consistency
 
 ## [2.2.0] - 2025-11-12
 
 ### ✨ Editor and Git Event Reactions
 
 - **💾 File Save Reactions** - Kubito now shows a disk emoji when you save files
-- **🔄 Git Commit Detection** - Shows "Committed!" message when you make Git commits
-- **🚀 Git Push Detection** - Shows "Pushed!" message when you push to remote repositories
-- **⚡️ Real-time Response** - Immediate reactions using file system watchers for `.git/logs/HEAD` and `.git/logs/refs/remotes`
+- **🔄 Git Commit Detection** - Shows "Committed!" message when you make Git
+  commits
+- **🚀 Git Push Detection** - Shows "Pushed!" message when you push to remote
+  repositories
+- **⚡️ Real-time Response** - Immediate reactions using file system watchers
+  for `.git/logs/HEAD` and `.git/logs/refs/remotes`
 
 ### ⚙️ Enhanced Configuration
 
@@ -50,8 +111,10 @@ and this project adheres to
   - `kubito.events.fileSave` - Toggle file save reactions (default: enabled)
   - `kubito.events.gitCommit` - Toggle Git commit reactions (default: enabled)
   - `kubito.events.gitPush` - Toggle Git push reactions (default: enabled)
-- **⚙️ Quick Settings Access** - New "Kubito: Configure Event Reactions" command for easy setup
-- **🔧 Event Message Priority** - Event messages interrupt random messages for immediate feedback
+- **⚙️ Quick Settings Access** - New "Kubito: Configure Event Reactions" command
+  for easy setup
+- **🔧 Event Message Priority** - Event messages interrupt random messages for
+  immediate feedback
 
 ## [2.1.0] - 2025-11-11
 

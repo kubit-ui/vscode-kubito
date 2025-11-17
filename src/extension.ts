@@ -5,6 +5,7 @@ import {
   formatTranslation,
   getCurrentTranslations
 } from './localization';
+import { ProductivityManager } from './core/productivity';
 
 /**
  * Message interface for Kubito's communication system
@@ -113,7 +114,37 @@ function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
-  context.subscriptions.push(showKubitoCommand, hideKubitoCommand, openEventSettingsCommand);
+  // Command to show productivity metrics
+  const showMetricsCommand = vscode.commands.registerCommand(
+    'kubito.showMetrics',
+    async (): Promise<void> => {
+      if (kubitoWebviewProvider) {
+        const insights = kubitoWebviewProvider.getProductivityInsights();
+        if (insights) {
+          const message = `📊 **Productivity Metrics**
+
+⏱️ Session: ${insights.sessionDuration}
+📝 ${insights.linesPerHour} lines/hour
+📂 ${insights.filesModified} files modified
+🏆 Score: ${insights.productivityScore}/100
+💻 Main language: ${insights.mostActiveLanguage}`;
+
+          void vscode.window.showInformationMessage(message, { modal: false });
+        } else {
+          void vscode.window.showInformationMessage(
+            'No metrics available yet. Start coding to see your productivity stats!'
+          );
+        }
+      }
+    }
+  );
+
+  context.subscriptions.push(
+    showKubitoCommand,
+    hideKubitoCommand,
+    openEventSettingsCommand,
+    showMetricsCommand
+  );
 }
 
 /**
@@ -201,6 +232,13 @@ function registerConfigurationListener(context: vscode.ExtensionContext): void {
         kubitoWebviewProvider.updateConfig();
       }
     }
+
+    if (event.affectsConfiguration('kubito.productivity')) {
+      // Update productivity manager configuration
+      if (kubitoWebviewProvider) {
+        kubitoWebviewProvider.updateProductivityConfig();
+      }
+    }
   });
 
   context.subscriptions.push(configChangeListener);
@@ -233,6 +271,7 @@ async function autoShowKubito(): Promise<void> {
  */
 class KubitoWebviewProvider implements IKubitoWebviewProvider {
   private _view: vscode.WebviewView | undefined;
+  private _productivityManager: ProductivityManager | undefined;
 
   constructor(private readonly _context: vscode.ExtensionContext) {}
 
@@ -253,9 +292,18 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
     // Set the HTML content for the webview
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
 
+    // Initialize productivity manager
+    this._productivityManager = new ProductivityManager(this._context, message =>
+      this.handleProductivityMessage(message)
+    );
+
     // Clean up when webview is disposed
     webviewView.onDidDispose(() => {
       this._view = undefined;
+      if (this._productivityManager) {
+        this._productivityManager.dispose();
+        this._productivityManager = undefined;
+      }
     });
   }
 
@@ -349,6 +397,52 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
         command: 'showMessage',
         message: message
       });
+    }
+  }
+
+  /**
+   * Handle productivity-related messages (reminders and metrics)
+   * @param message - Productivity message from ProductivityManager
+   */
+  private handleProductivityMessage(message: { type: string; content: string }): void {
+    let kubitoMessage: IMessage;
+
+    switch (message.type) {
+      case 'reminder':
+        kubitoMessage = {
+          type: 'text',
+          content: message.content
+        };
+        break;
+      case 'metrics':
+        kubitoMessage = {
+          type: 'text',
+          content: message.content
+        };
+        break;
+      default:
+        kubitoMessage = {
+          type: 'text',
+          content: message.content
+        };
+    }
+
+    this.triggerMessage(kubitoMessage);
+  }
+
+  /**
+   * Get productivity insights from the manager
+   */
+  public getProductivityInsights(): any {
+    return this._productivityManager?.getProductivityInsights();
+  }
+
+  /**
+   * Update productivity manager configuration when settings change
+   */
+  public updateProductivityConfig(): void {
+    if (this._productivityManager) {
+      this._productivityManager.updateConfiguration();
     }
   }
 

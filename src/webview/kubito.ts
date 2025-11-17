@@ -607,17 +607,19 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Set up event listeners for interaction (hover only - no clicking)
-   * Click interaction removed to prepare for future drag & drop functionality
+   * Set up event listeners for interaction (hover and click)
+   * Click interaction restored for jump functionality
    */
   private setupEventListeners(): void {
     // Remove existing listeners first to avoid duplicates
     this.kubito.removeEventListener('mouseenter', this.handleMouseEnter.bind(this));
     this.kubito.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
+    this.kubito.removeEventListener('click', this.handleClick.bind(this));
 
     // Add new listeners
     this.kubito.addEventListener('mouseenter', this.handleMouseEnter.bind(this));
     this.kubito.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+    this.kubito.addEventListener('click', this.handleClick.bind(this));
   }
 
   /**
@@ -632,6 +634,13 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
    */
   private handleMouseLeave(): void {
     this.kubito.style.filter = 'brightness(1)';
+  }
+
+  /**
+   * Handle click events to make Kubito jump
+   */
+  private handleClick(): void {
+    this.performJump();
   }
 
   /**
