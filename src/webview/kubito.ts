@@ -2,18 +2,8 @@
  * Kubito Webview Animation Controller
  *
  * This module provides an interactive Kubito companion that lives in the VS Code sidebar.
- * Kubito walks around, jumps when clicked, and shows random messages to keep users engaged.
+ * Kubito greets you, walks around, jumps, pauses and shows random messages to keep users engaged.
  *
- * Features:
- * - Smooth walking animation with boundary detection
- * - Click-to-jump interaction with proper state management
- * - Random motivational messages with emoji support
- * - Multi-language support with automatic VS Code language detection
- * - Responsive to container size changes
- * - Optimized performance with requestAnimationFrame
- * - Contextual time-based message selection
- */
-
 /**
  * Temporal context for contextual messages
  */
@@ -36,7 +26,9 @@ enum KubitoState {
   WANDERING = 'wandering', // Moving around
   PAUSED = 'paused', // Standing still/idle
   JUMPING = 'jumping', // Jump animation
-  TALKING = 'talking' // Showing a message
+  TALKING = 'talking', // Showing a message
+  DRAGGING = 'dragging', // Being dragged by user
+  FALLING = 'falling' // Falling with gravity after being dropped
 }
 
 /**
@@ -130,7 +122,8 @@ function getWebviewTranslation(key: string): string {
   // Get translations from window object or use defaults
   const translations = (window as any).kubitoTranslations || {
     sleeping: 'Zzz...',
-    letsCode: 'Let\'s code! 🚀',
+    /* eslint-disable-next-line quotes */
+    letsCode: "Let's code! 🚀",
     coffee: 'Coffee? ☕️',
     vivaKubit: 'Viva Kubit!'
   };
@@ -218,7 +211,21 @@ const KUBITO_CONFIG = {
   KUBITO_HEIGHT: 36, // Kubito sprite height in pixels
 
   // Safe zone for messages
-  SAFE_ZONE_MARGIN: 0.15 // 15% margin on each side = 70% center safe zone
+  SAFE_ZONE_MARGIN: 0.15, // 15% margin on each side = 70% center safe zone
+
+  // Drag & Drop Physics
+  GRAVITY: 0.5, // Gravity acceleration (pixels/frame²)
+  TERMINAL_VELOCITY: 15, // Maximum falling speed (pixels/frame)
+  BOUNCE_DAMPING: 0.4, // Bounce velocity reduction (40% of impact velocity)
+  MIN_BOUNCE_VELOCITY: 2, // Minimum velocity required to bounce
+  SHAKE_DURATION: 200, // Duration of landing shake effect (milliseconds)
+  SHAKE_INTENSITY: 3, // Pixels of shake movement
+
+  // Throw physics
+  THROW_VELOCITY_SCALE: 0.5, // Multiplier for throw velocity (0.5 = half of mouse velocity)
+  THROW_MAX_VELOCITY: 20, // Maximum throw velocity in any direction
+  THROW_FRICTION: 0.98, // Horizontal friction (0.98 = loses 2% per frame)
+  THROW_MIN_VELOCITY: 0.5 // Minimum velocity before stopping horizontal movement
 } as const;
 
 /**
@@ -532,6 +539,27 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   public currentImageState: string = ''; // Track current image to avoid unnecessary changes
   public isTransitioning: boolean = false; // Flag to prevent rapid state changes
   public lastJumpTime: number = 0; // Track last jump time for cooldown
+  public lastLandingTime: number = 0; // Track last landing time for cooldown
+
+  // Drag & Drop state
+  public verticalPosition: number = 0; // Current distance from bottom (0 = at floor, increases upward)
+  public fallingVelocity: number = 0; // Current falling velocity (pixels/frame)
+  public isDragging: boolean = false; // Whether user is currently dragging
+  public dragOffsetX: number = 0; // Mouse offset from Kubito's left edge
+  public dragOffsetY: number = 0; // Mouse offset from Kubito's top edge
+  public shakeStartTime: number = 0; // When landing shake started
+  public mouseDownTime: number = 0; // When mouse was pressed down
+  public mouseDownX: number = 0; // Mouse X position at mousedown
+  public mouseDownY: number = 0; // Mouse Y position at mousedown
+  public hasMoved: boolean = false; // Whether mouse has moved during mousedown
+
+  // Throw physics tracking
+  public lastMouseX: number = 0; // Last mouse X position for velocity calculation
+  public lastMouseY: number = 0; // Last mouse Y position for velocity calculation
+  public lastMouseTime: number = 0; // Last mouse move timestamp
+  public throwVelocityX: number = 0; // Horizontal throw velocity
+  public throwVelocityY: number = 0; // Vertical throw velocity (upward is positive)
+  public bounceCount: number = 0; // Number of consecutive bounces for progressive damping
 
   public readonly kubito: HTMLImageElement;
   public readonly container: HTMLElement;
@@ -552,16 +580,23 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
     this.kubito = kubitoElement as HTMLImageElement;
     this.container = containerElement as HTMLElement;
 
-    // Set initial position to center of container
+    // Set initial position to center of container horizontally
     this.position = this.getCenterPosition();
+
+    // Initialize vertical position at floor (0 = on the ground)
+    this.verticalPosition = 0;
 
     // Initialize all subsystems
     this.setupEventListeners();
     this.setupRandomMessages();
     this.setupDynamicHeight();
+    this.setupDragAndDrop();
 
     // Initialize with WAVING state for greeting
     this.initializeWavingState();
+
+    // Set initial position in DOM
+    this.updateKubitoPosition();
   }
 
   /**
@@ -607,19 +642,17 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Set up event listeners for interaction (hover and click)
-   * Click interaction restored for jump functionality
+   * Set up event listeners for interaction (hover only - no clicking)
+   * Click interaction removed to prepare for future drag & drop functionality
    */
   private setupEventListeners(): void {
     // Remove existing listeners first to avoid duplicates
     this.kubito.removeEventListener('mouseenter', this.handleMouseEnter.bind(this));
     this.kubito.removeEventListener('mouseleave', this.handleMouseLeave.bind(this));
-    this.kubito.removeEventListener('click', this.handleClick.bind(this));
 
     // Add new listeners
     this.kubito.addEventListener('mouseenter', this.handleMouseEnter.bind(this));
     this.kubito.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
-    this.kubito.addEventListener('click', this.handleClick.bind(this));
   }
 
   /**
@@ -637,10 +670,327 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   }
 
   /**
-   * Handle click events to make Kubito jump
+   * Set up drag and drop interaction
+   * Distinguishes between click (for jump) and drag (for dragging)
+   * - Click = mousedown + mouseup without movement → triggers jump
+   * - Drag = mousedown + mousemove → triggers drag & drop
+   */
+  private setupDragAndDrop(): void {
+    const DRAG_THRESHOLD = 5; // Minimum pixels to move before considering it a drag
+
+    // Mousedown - Prepare for potential drag or click
+    this.kubito.addEventListener('mousedown', (e: MouseEvent) => {
+      // Allow interaction from PAUSED, WANDERING, or TALKING states
+      if (
+        this.kubitoState !== KubitoState.PAUSED &&
+        this.kubitoState !== KubitoState.WANDERING &&
+        this.kubitoState !== KubitoState.TALKING
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+
+      // Record mouse down position and time
+      this.mouseDownTime = Date.now();
+      this.mouseDownX = e.clientX;
+      this.mouseDownY = e.clientY;
+      this.hasMoved = false;
+
+      // Calculate potential drag offsets (in case this becomes a drag)
+      const rect = this.kubito.getBoundingClientRect();
+      this.dragOffsetX = e.clientX - rect.left;
+      this.dragOffsetY = rect.bottom - e.clientY;
+    });
+
+    // Mousemove - Detect if this is a drag
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+      // If mouse is down but not yet dragging, check if movement threshold exceeded
+      // Also verify we're not in FALLING state (prevents re-grab after drop)
+      if (this.mouseDownTime > 0 && !this.isDragging && this.kubitoState !== KubitoState.FALLING) {
+        const deltaX = Math.abs(e.clientX - this.mouseDownX);
+        const deltaY = Math.abs(e.clientY - this.mouseDownY);
+
+        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+          // Movement detected - start dragging
+          this.hasMoved = true;
+          this.startDragging();
+        }
+      }
+
+      // Continue dragging if already in drag mode
+      if (!this.isDragging) {
+        return;
+      }
+
+      // Track velocity for throw physics
+      const currentTime = Date.now();
+      if (this.lastMouseTime > 0) {
+        const deltaTime = currentTime - this.lastMouseTime;
+        if (deltaTime > 0) {
+          const deltaX = e.clientX - this.lastMouseX;
+          const deltaY = e.clientY - this.lastMouseY;
+
+          // Calculate velocity (pixels per millisecond, converted to pixels per frame)
+          // Assuming ~60fps = 16.67ms per frame
+          this.throwVelocityX = (deltaX / deltaTime) * 16.67;
+          this.throwVelocityY = -(deltaY / deltaTime) * 16.67; // Negative because Y is inverted
+        }
+      }
+      this.lastMouseX = e.clientX;
+      this.lastMouseY = e.clientY;
+      this.lastMouseTime = currentTime;
+
+      // Check if cursor is outside viewport (drop zone)
+      if (this.isOutsideViewport(e.clientX, e.clientY)) {
+        this.dropKubito();
+        return;
+      }
+
+      // Update position following cursor
+      const containerRect = this.container.getBoundingClientRect();
+      this.position = e.clientX - containerRect.left - this.dragOffsetX;
+
+      // Convert from mouse Y position to bottom-based position
+      const containerHeight = this.container.clientHeight;
+      const mouseDistanceFromBottom = containerRect.bottom - e.clientY;
+      this.verticalPosition = mouseDistanceFromBottom - this.dragOffsetY;
+
+      // Keep within horizontal bounds
+      this.position = Math.max(0, Math.min(this.position, this.getMaxWidth()));
+
+      // Keep within vertical bounds (0 = floor, positive = above floor)
+      const maxHeight = containerHeight - KUBITO_CONFIG.KUBITO_HEIGHT;
+      this.verticalPosition = Math.max(0, Math.min(this.verticalPosition, maxHeight));
+
+      this.updateKubitoPosition();
+    });
+
+    // Mouseup - Either complete drag or trigger jump
+    document.addEventListener('mouseup', () => {
+      if (this.isDragging) {
+        // Was dragging - drop Kubito
+        this.dropKubito();
+      } else if (this.mouseDownTime > 0 && !this.hasMoved) {
+        // Was a click without movement - trigger jump
+        this.handleClick();
+      }
+
+      // Reset mouse tracking
+      this.mouseDownTime = 0;
+      this.hasMoved = false;
+    });
+
+    // Mouse leave - Drop Kubito if cursor leaves the viewport while dragging
+    document.addEventListener('mouseleave', () => {
+      if (this.isDragging) {
+        this.dropKubito();
+      }
+    });
+
+    // ESC key - Cancel dragging
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && this.isDragging) {
+        this.dropKubito();
+      }
+    });
+  }
+
+  /**
+   * Start dragging Kubito (called when mouse movement threshold is exceeded)
+   */
+  private startDragging(): void {
+    // Hide any active message when starting to drag
+    if (this.isShowingMessage) {
+      this.hideMessage();
+    }
+
+    this.isDragging = true;
+    this.kubitoState = KubitoState.DRAGGING;
+    this.stateStartTime = Date.now(); // Reset state timer to prevent transition
+    this.setKubitoImage('footing');
+
+    // Initialize velocity tracking for throw physics
+    this.lastMouseX = this.mouseDownX;
+    this.lastMouseY = this.mouseDownY;
+    this.lastMouseTime = Date.now();
+    this.throwVelocityX = 0;
+    this.throwVelocityY = 0;
+
+    // Update cursor - only set body cursor, let CSS handle kubito cursor
+    document.body.style.cursor = 'grabbing';
+  }
+
+  /**
+   * Handle click event (mousedown + mouseup without movement)
+   * Triggers jump if conditions are met
    */
   private handleClick(): void {
-    this.performJump();
+    if (this.kubitoState === KubitoState.PAUSED || this.kubitoState === KubitoState.WANDERING) {
+      this.performJump();
+    }
+  }
+
+  /**
+   * Check if coordinates are outside the viewport
+   * Uses window viewport instead of container to detect when cursor leaves the entire view
+   */
+  private isOutsideViewport(x: number, y: number): boolean {
+    // Check against window viewport boundaries
+    return x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight;
+  }
+
+  /**
+   * Drop Kubito and start falling physics with throw velocity
+   */
+  private dropKubito(): void {
+    if (!this.isDragging) {
+      return;
+    }
+
+    this.isDragging = false;
+    this.kubitoState = KubitoState.FALLING;
+    this.bounceCount = 0; // Reset bounce counter for new drop
+
+    // Apply throw physics: scale and clamp velocities
+    this.throwVelocityX *= KUBITO_CONFIG.THROW_VELOCITY_SCALE;
+    this.throwVelocityY *= KUBITO_CONFIG.THROW_VELOCITY_SCALE;
+
+    // Clamp to maximum velocities
+    this.throwVelocityX = Math.max(
+      -KUBITO_CONFIG.THROW_MAX_VELOCITY,
+      Math.min(KUBITO_CONFIG.THROW_MAX_VELOCITY, this.throwVelocityX)
+    );
+    this.throwVelocityY = Math.max(
+      -KUBITO_CONFIG.THROW_MAX_VELOCITY,
+      Math.min(KUBITO_CONFIG.THROW_MAX_VELOCITY, this.throwVelocityY)
+    );
+
+    // Start with upward throw velocity (positive = upward)
+    // If thrown downward (negative Y velocity), start falling immediately
+    this.fallingVelocity = -this.throwVelocityY; // Invert for falling velocity
+
+    this.stateStartTime = Date.now();
+
+    // Reset all mouse tracking state
+    this.mouseDownTime = 0;
+    this.hasMoved = false;
+    this.lastMouseTime = 0;
+
+    // Reset cursor - remove body cursor, CSS will handle kubito cursor
+    document.body.style.cursor = '';
+  }
+
+  /**
+   * Update Kubito's position (both X and Y)
+   */
+  private updateKubitoPosition(): void {
+    this.kubito.style.left = this.position + 'px';
+    this.kubito.style.bottom = this.verticalPosition + 'px';
+  }
+
+  /**
+   * Apply gravity physics and horizontal throw velocity when Kubito is falling
+   */
+  private applyGravity(): void {
+    // Apply horizontal throw velocity with friction
+    if (Math.abs(this.throwVelocityX) > KUBITO_CONFIG.THROW_MIN_VELOCITY) {
+      this.position += this.throwVelocityX;
+      this.throwVelocityX *= KUBITO_CONFIG.THROW_FRICTION;
+
+      // Keep within horizontal bounds
+      const maxWidth = this.getMaxWidth();
+      if (this.position <= 0) {
+        this.position = 0;
+        this.throwVelocityX *= -KUBITO_CONFIG.BOUNCE_DAMPING; // Bounce off left wall
+      } else if (this.position >= maxWidth) {
+        this.position = maxWidth;
+        this.throwVelocityX *= -KUBITO_CONFIG.BOUNCE_DAMPING; // Bounce off right wall
+      }
+    } else {
+      this.throwVelocityX = 0; // Stop if velocity too low
+    }
+
+    // Apply gravity acceleration (reduces vertical position = falling down)
+    this.fallingVelocity += KUBITO_CONFIG.GRAVITY;
+
+    // Limit to terminal velocity
+    if (this.fallingVelocity > KUBITO_CONFIG.TERMINAL_VELOCITY) {
+      this.fallingVelocity = KUBITO_CONFIG.TERMINAL_VELOCITY;
+    }
+
+    // Update vertical position (subtract because falling means getting closer to 0)
+    this.verticalPosition -= this.fallingVelocity;
+
+    // Check for collision with ceiling
+    const maxHeight = this.container.clientHeight - KUBITO_CONFIG.KUBITO_HEIGHT;
+    if (this.verticalPosition >= maxHeight) {
+      this.verticalPosition = maxHeight;
+      // Bounce off ceiling (reverse velocity with damping)
+      this.fallingVelocity = -this.fallingVelocity * KUBITO_CONFIG.BOUNCE_DAMPING;
+    }
+
+    // Check for collision with ground (verticalPosition = 0 is the floor)
+    if (this.verticalPosition <= 0) {
+      this.verticalPosition = 0;
+      this.landKubito();
+    }
+
+    this.updateKubitoPosition();
+  }
+
+  /**
+   * Handle landing with bounce physics and shake effect
+   */
+  private landKubito(): void {
+    // Calculate bounce with progressive damping
+    if (Math.abs(this.fallingVelocity) > KUBITO_CONFIG.MIN_BOUNCE_VELOCITY) {
+      // Increment bounce counter
+      this.bounceCount++;
+
+      // Progressive damping: each bounce reduces velocity more
+      // First bounce: 40%, second: 60%, third: 80%, etc.
+      const progressiveDamping = Math.min(0.2 + this.bounceCount * 0.2, 0.9);
+      this.fallingVelocity = -this.fallingVelocity * (1 - progressiveDamping);
+    } else {
+      // Velocity too low, stop bouncing
+      this.fallingVelocity = 0;
+      this.bounceCount = 0; // Reset bounce counter
+      this.kubitoState = KubitoState.PAUSED;
+      this.setKubitoImage('idle');
+
+      // Record landing time for message cooldown
+      this.lastLandingTime = Date.now();
+
+      // Initialize pause state duration so it will transition to wandering
+      this.stateStartTime = Date.now();
+      this.currentStateDuration =
+        Math.random() * (KUBITO_CONFIG.PAUSE_MAX - KUBITO_CONFIG.PAUSE_MIN) +
+        KUBITO_CONFIG.PAUSE_MIN;
+
+      // Trigger shake effect
+      this.shakeStartTime = Date.now();
+      this.applyShakeEffect();
+    }
+  }
+
+  /**
+   * Apply shake effect when landing
+   */
+  private applyShakeEffect(): void {
+    const elapsed = Date.now() - this.shakeStartTime;
+
+    if (elapsed < KUBITO_CONFIG.SHAKE_DURATION) {
+      // Apply random horizontal shake
+      const shakeOffset = (Math.random() - 0.5) * 2 * KUBITO_CONFIG.SHAKE_INTENSITY;
+      this.kubito.style.transform = `translateX(${shakeOffset}px)`;
+
+      // Continue shaking
+      requestAnimationFrame(() => this.applyShakeEffect());
+    } else {
+      // Reset shake
+      this.kubito.style.transform = '';
+    }
   }
 
   /**
@@ -657,11 +1007,15 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
         const timeSinceLastJump = Date.now() - this.lastJumpTime;
         const isInJumpCooldown = timeSinceLastJump < KUBITO_CONFIG.POST_JUMP_COOLDOWN;
 
-        // Show messages when not jumping, not in jump cooldown, and in safe zone
+        const timeSinceLastLanding = Date.now() - this.lastLandingTime;
+        const isInLandingCooldown = timeSinceLastLanding < KUBITO_CONFIG.POST_JUMP_COOLDOWN;
+
+        // Show messages when not jumping, not in jump cooldown, not in landing cooldown, and in safe zone
         // Messages only appear during PAUSED state
         if (
           !this.isJumping &&
           !isInJumpCooldown &&
+          !isInLandingCooldown &&
           this.kubitoState === KubitoState.PAUSED &&
           this.isInSafeZone()
         ) {
@@ -1015,7 +1369,7 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
   /**
    * Set Kubito's image based on state with optimized change detection
    */
-  private setKubitoImage(state: 'walking' | 'jumping' | 'idle' | 'waving'): void {
+  private setKubitoImage(state: 'walking' | 'jumping' | 'idle' | 'waving' | 'footing'): void {
     // Avoid unnecessary image changes to prevent flicker
     if (this.currentImageState === state) {
       // Still update direction class in case direction changed
@@ -1211,6 +1565,19 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
       return;
     }
 
+    // Handle falling physics
+    if (this.kubitoState === KubitoState.FALLING) {
+      this.applyGravity();
+      this.animationId = requestAnimationFrame(() => this.animate());
+      return;
+    }
+
+    // Skip normal movement during dragging
+    if (this.kubitoState === KubitoState.DRAGGING) {
+      this.animationId = requestAnimationFrame(() => this.animate());
+      return;
+    }
+
     // Update jump animation if jumping
     if (this.isJumping) {
       this.updateJumpAnimation();
@@ -1219,6 +1586,7 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
     }
 
     // Check if we should transition between wandering and paused states
+    // (DRAGGING and FALLING already handled above with early returns)
     if (this.shouldTransitionState()) {
       this.transitionKubitoState();
     }
@@ -1247,8 +1615,11 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
         this.updateDirectionClass();
       }
 
-      // Apply position
-      this.kubito.style.left = `${this.position}px`;
+      // Ensure Kubito stays at the bottom when wandering
+      this.verticalPosition = 0;
+
+      // Apply position (both X and Y)
+      this.updateKubitoPosition();
     }
 
     // Update message position if showing

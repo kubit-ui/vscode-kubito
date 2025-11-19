@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-11-19
+
+### ✨ Added
+
+- **🎮 Interactive Drag & Drop** - Kubito can now be dragged and dropped anywhere in the webview
+  - Click detection vs drag detection with 5px threshold
+  - Gravity physics with terminal velocity and bounce effects
+  - Progressive bounce damping (each bounce reduces more velocity)
+  - Throw physics - maintains momentum when released during fast movement
+  - Wall and ceiling collision detection with bounce
+  - Smooth landing with shake effect
+  - Message hiding when dragging starts
+  - ESC key to cancel drag
+  - Drop detection when cursor leaves viewport
+- **🎯 New Animation State** - `DRAGGING` state with footing GIF asset
+- **🌊 Physics System** - Complete gravity-based physics engine
+  - Gravity acceleration: 0.5 px/frame²
+  - Terminal velocity: 15 px/frame
+  - Bounce damping: 40% initial, progressively increasing
+  - Shake effect on landing: 200ms duration
+  - Throw velocity scaling and clamping
+  - Friction-based horizontal movement
+
+### 🔧 Changed
+
+- **Coordinate System** - Refactored from top-based to bottom-based positioning for easier physics calculations
+- **Cursor Behavior** - Improved cursor states: `pointer` on hover, `grabbing` while dragging
+- **State Machine** - Enhanced with `DRAGGING` and `FALLING` states for drag & drop
+- **CSS** - Removed static `bottom: 0` positioning, now fully dynamic with JavaScript
+
+
 ## [2.5.0] - 2025-11-15
 
 ### 🚀 Productivity & Wellness Features
