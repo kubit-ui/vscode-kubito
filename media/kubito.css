@@ -19,7 +19,6 @@ body {
 
 #kubito {
   position: absolute;
-  bottom: 0;
   left: 0;
   width: 36px;
   height: 36px;
@@ -30,6 +29,10 @@ body {
 
 #kubito:hover {
   filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+#kubito:active {
+  cursor: grabbing;
 }
 
 .walking-right {

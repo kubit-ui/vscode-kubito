@@ -39,7 +39,7 @@ suite('Localization Test Suite', () => {
     assert.ok(languages.includes('de'), 'Should include German');
     assert.ok(languages.includes('pt'), 'Should include Portuguese');
     assert.ok(languages.includes('it'), 'Should include Italian');
-    assert.strictEqual(languages.length, 6, 'Should have exactly 6 languages');
+    assert.strictEqual(languages.length, 14, 'Should have exactly 14 languages');
   });
 
   /**
@@ -52,7 +52,8 @@ suite('Localization Test Suite', () => {
     assert.ok(enTranslations.messages, 'Should return translations object');
     assert.strictEqual(
       enTranslations.messages.letsCode,
-      'Let\'s code! 🚀',
+      // eslint-disable-next-line quotes
+      "Let's code! 🚀",
       'Should have English translation'
     );
 
@@ -173,7 +174,8 @@ suite('Localization Test Suite', () => {
     );
     assert.strictEqual(
       translations.messages.letsCode,
-      'Let\'s code! 🚀',
+      // eslint-disable-next-line quotes
+      "Let's code! 🚀",
       'Should use English translations as fallback'
     );
   });

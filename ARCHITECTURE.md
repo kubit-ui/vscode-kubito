@@ -18,6 +18,7 @@ media/
 ├── kubito-jumping.gif   # Jumping animation
 ├── kubito-idle.gif      # Idle animation
 ├── kubito-waving.gif    # Waving greeting animation
+├── kubito-footing.gif   # Dragging/falling animation (new)
 ├── kubit-logo.png       # Custom message icon
 └── kubit-love.png       # Custom message icon
 ```
@@ -35,15 +36,23 @@ out/                     # Compiled extension files
 - **VS Code Integration**: Registers commands and handles extension lifecycle
 - **Asset Loading**: Makes all sprites and resources available to webview
 
-### **2. Kubito Walker (`src/webview/kubito.ts`)**
+### **2. Kubito Controller (`src/webview/kubito.ts`)**
 
-- **Animation Engine**: Handles movement, direction changes, and sprite
-  switching
-- **Interaction System**: Click-to-jump functionality with priority handling
+- **Animation Engine**: Handles movement, direction changes, and sprite switching
+- **Interaction System**:
+  - Click-to-jump functionality with priority handling
+  - Drag & drop detection with 5px threshold
+  - Smart distinction between click and drag
+- **Physics Engine** (NEW):
+  - Gravity acceleration (0.5 px/frame²) with terminal velocity (15 px/frame)
+  - Progressive bounce damping - each bounce reduces more velocity
+  - Throw physics that maintains momentum from mouse velocity
+  - Horizontal friction (2% loss per frame) for realistic sliding
+  - Wall and ceiling collision detection with bounce effects
+  - Landing shake effect animation
 - **Message System**: Random messages that intelligently follow Kubito
-- **Collision Detection**: Smart direction changes to avoid message-edge
-  collisions
-- **State Management**: Handles jumping, idle, walking, and messaging states
+- **Collision Detection**: Smart direction changes to avoid message-edge collisions
+- **State Management**: Handles jumping, idle, walking, dragging, falling, and messaging states
 
 ### **3. Message System**
 
@@ -65,7 +74,17 @@ WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED �
                                                       ↓
                                                 Jump(20% chance)
                                                       ↓
-                                                  JUMPING ──800ms── → back to appropriate state
+                                                  JUMPING ──800ms──┐
+                                                      ↑             │
+                                                      └─────────────┘
+
+                    Drag & Drop with Physics (NEW)
+                    ─────────────────────────────
+PAUSED/WANDERING/TALKING ──mousedown+mousemove──→ DRAGGING ──drop──→ FALLING
+                                                                         ↓
+                                                                    BOUNCING (progressive damping)
+                                                                         ↓
+                                                                      PAUSED
 ```
 
 ### **Kubito States (KubitoState enum)**
@@ -75,13 +94,16 @@ WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED �
 - **PAUSED**: Stationary state lasting 1-2.5 seconds, safe zone for messages
 - **JUMPING**: 800ms autonomous jump animation with cooldown system
 - **TALKING**: Message display state with Kubito paused and speech bubble following
+- **DRAGGING** (NEW): User is dragging Kubito with mouse, shows footing animation
+- **FALLING** (NEW): Kubito falling from drop, applies gravity physics and bouncing
 
 ### **Sprite Management**
 
 - **Waving State**: `kubito-waving.gif` - Friendly greeting animation
 - **Walking State**: `kubito-walking.gif` - Smooth continuous movement animation
 - **Jumping State**: `kubito-jumping.gif` - Jump sequence with landing
-- **Idle State**: `kubito-idle.gif` -  Idle animation
+- **Idle State**: `kubito-idle.gif` - Idle animation
+- **Dragging/Falling State**: `kubito-footing.gif` - Used during drag and fall states (NEW)
 - **Direction Classes**: `walking-right` / `walking-left` for CSS transforms
 
 ### **Smart Timing System**
@@ -92,7 +114,33 @@ WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED �
 - **Jump Probability**: 20% chance when entering pause state
 - **Message Safe Zone**: 70% center area for optimal visibility and collision avoidance
 - **Jump Cooldown**: 1-second buffer prevents jumps in rapid succession
+- **Landing Cooldown**: 1-second buffer prevents messages immediately after drop (NEW)
 - **Movement Speed**: 0.08px/frame for smooth, non-distracting motion
+- **Click vs Drag Threshold**: 5px movement required to trigger drag (NEW)
+
+### **Physics Constants** (NEW)
+
+```typescript
+// Gravity & Bouncing
+GRAVITY: 0.5                    // Acceleration in px/frame²
+TERMINAL_VELOCITY: 15           // Maximum falling speed
+BOUNCE_DAMPING: 0.4             // 40% initial bounce reduction (progressive)
+MIN_BOUNCE_VELOCITY: 2          // Minimum velocity required to bounce
+SHAKE_DURATION: 200             // Landing shake effect duration (ms)
+SHAKE_INTENSITY: 3              // Shake movement distance (pixels)
+
+// Throw Physics
+THROW_VELOCITY_SCALE: 0.5       // Scale factor: 50% of mouse velocity
+THROW_MAX_VELOCITY: 20          // Maximum throw speed (px/frame)
+THROW_FRICTION: 0.98            // Horizontal friction (2% loss per frame)
+THROW_MIN_VELOCITY: 0.5         // Velocity threshold to stop horizontal movement
+```
+
+**Progressive Bounce System**: Each bounce reduces more velocity
+- 1st bounce: 40% damping (60% velocity remains)
+- 2nd bounce: 60% damping (40% velocity remains)
+- 3rd bounce: 80% damping (20% velocity remains)
+- And so on, up to maximum 90% damping
 
 ## 🔄 Event Flow
 
@@ -107,6 +155,27 @@ WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED �
 7. **Message Opportunity**: Messages only appear during pause in safe zone
 8. **Return to Wandering**: Cycle continues with potential direction changes
 
+### **Drag & Drop Physics Flow**
+
+1. **Click Detection** (mousedown): Record initial mouse position and timestamp
+2. **Drag Threshold** (mousemove): If movement > 5px → transition to DRAGGING state
+3. **Dragging**: Show footing animation, follow cursor position, track velocity for throw
+4. **Velocity Calculation**: Calculate throw velocity based on mouse delta and time
+5. **Drop Trigger**:
+   - Release mouse (mouseup) → start falling with throw velocity
+   - Leave viewport (mouseleave) → immediate drop
+   - ESC key → cancel drag immediately
+6. **Falling Phase**:
+   - Apply gravity acceleration
+   - Apply horizontal friction to throw velocity
+   - Check ceiling/floor collisions
+7. **Bounce Phase**:
+   - Land on floor → calculate bounce with progressive damping
+   - If velocity > MIN_BOUNCE_VELOCITY → bounce up with reduced velocity
+   - If velocity ≤ MIN_BOUNCE_VELOCITY → stop bouncing
+8. **Landing State**: Return to PAUSED with shake effect and landing cooldown
+9. **Resume Autonomy**: After landing cooldown → resume normal state machine (WANDERING)
+
 ### **Smart Message System**
 
 1. Timer triggers (3-7s random) → Validate conditions (paused + safe zone)
@@ -120,6 +189,8 @@ WAVING ──timer(1.5s)──→ WANDERING ──timer(4-8s)──→ PAUSED �
 1. **Efficient DOM Updates**: State tracking prevents unnecessary image changes
 2. **Frame-perfect Timing**: RequestAnimationFrame ensures 60fps smoothness
 3. **Memory Management**: Proper event cleanup and state management
+4. **Physics Optimization** (NEW): Velocity-based calculations with early termination when below thresholds
+5. **Collision Detection** (NEW): Optimized boundary checks for wall, ceiling, and floor collisions
 
 ## 🔧 Build Process
 
@@ -145,6 +216,8 @@ vsce package             # Creates .vsix file
 - **Optimized Movement Speed**: 0.08px/frame for natural, non-distracting interaction
 - **Minimal DOM Manipulation**: Reuse elements when possible
 - **Smart Safe Zone**: 70% center area reduces collision detection overhead
+- **Velocity-Based Physics** (NEW): Early termination of physics calculations when velocity below minimum thresholds
+- **Efficient Collision Detection** (NEW): Optimized boundary checks for smooth interactions
 
 ## 🔒 Security Considerations
 

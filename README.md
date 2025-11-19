@@ -9,19 +9,17 @@
 ## ✨ What Kubito Does
 
 - 🤖 **Walks Around**: Kubito walks back and forth in your Explorer
-- 🦘 **Autonomous Fun**: Kubito waves, jumps, talks and pauses randomly
+- 🦘 **Autonomous Fun**: Kubito waves, talks and pauses randomly
+- 🎮 **Interactive**: Click to make Kubito jump, or grab and throw him with realistic gravity, bounce, and momentum across your screen!
 - 💬 **Smart Messages**: Context-aware messages that adapt to time and day
   (Monday Blues, Friday Feeling, Working Late)
 - 📁 **Development Reactions**: Kubito reacts to your coding activities - file
-  saves, Git commits, and pushes with contextual messages
+  saves, Git commits, and pushes
 - 📊 **Productivity Tracking**: Smart reminders for breaks and water, plus
   coding metrics to track your productivity
 - 🏆 **Coding Metrics**: Track lines of code, session time, and get productivity
   insights
-- 🌍 **14 Languages**: Multilingual support for a global audience:
-  - 🇪🇸 Spanish • 🇺🇸 English • 🇫🇷 French • 🇩🇪 German • 🇵🇹 Portuguese • 🇮🇹 Italian
-  - 🇯🇵 Japanese • 🇰🇷 Korean • 🇨🇳 Chinese • 🇷🇺 Russian • 🇳🇱 Dutch • 🇵🇱 Polish
-  - 🇸🇦 Arabic • 🇹🇷 Turkish
+- 🌍 **14 Languages**: Multilingual support for a global audience
 
 ## 🚀 Getting Started
 
@@ -35,17 +33,19 @@
 
 ## 🎮 How to Interact
 
-| Action                 | What Happens                                    |
-| ---------------------- | ----------------------------------------------- |
-| 👀 **Hover over him**  | See a nice glow effect                          |
-| ⏰ **Watch and wait**  | Kubito autonomously walks, pauses, and jumps    |
-| 💾 **Save a file**     | Kubito shows encouraging save reactions         |
-| ✅ **Git commit**      | Kubito celebrates your commits with messages    |
-| 🚀 **Git push**        | Kubito cheers when you push your code!          |
-| 💧 **Productivity**    | Kubito reminds you to take breaks, drink water  |
-| 📊 **View Metrics**    | Use "Kubito: Show Productivity Metrics" command |
-| 🌍 **Change language** | Messages adapt to your preferred language       |
-| 📁 **Expand/Collapse** | Control Kubito's section like any sidebar panel |
+| Action                 | What Happens                                              |
+| ---------------------- | --------------------------------------------------------- |
+| 👀 **Hover over him**  | See a nice glow effect                                    |
+| 🖱️ **Click on him**    | Make Kubito jump!                                         |
+| 🎯 **Drag & Drop**     | Grab and throw Kubito anywhere - he'll fall with physics! |
+| ⏰ **Watch and wait**  | Kubito autonomously walks, pauses, and jumps              |
+| 💾 **Save a file**     | Kubito shows reassuring save reactions                   |
+| ✅ **Git commit**      | Kubito celebrates your commits with messages              |
+| 🚀 **Git push**        | Kubito cheers when you push your code!                    |
+| 💧 **Productivity**    | Kubito reminds you to take breaks, drink water            |
+| 📊 **View Metrics**    | Use "Kubito: Show Productivity Metrics" command           |
+| 🌍 **Change language** | Messages adapt to your preferred language                 |
+| 📁 **Expand/Collapse** | Control Kubito's section like any sidebar panel           |
 
 ## ⚙️ Settings
 
