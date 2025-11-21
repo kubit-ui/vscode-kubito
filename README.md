@@ -6,6 +6,10 @@
 > **Meet Kubito, your coding companion that brings joy to your development
 > workspace!**
 
+<p align="left">
+  <img src="media/demo-extension.gif" alt="Kubito Demo" width="600">
+</p>
+
 ## ✨ What Kubito Does
 
 - 🤖 **Walks Around**: Kubito walks back and forth in your Explorer
@@ -84,9 +88,6 @@ Enhance your coding workflow with intelligent reminders and metrics:
 
 Kubito speaks your language! All messages, reminders, and productivity features
 are fully localized in:
-
-### Western Languages
-
 - 🇪🇸 **Spanish** (Español) - Native support
 - 🇺🇸 **English** - Native support
 - 🇫🇷 **French** (Français) - Native support
@@ -94,16 +95,10 @@ are fully localized in:
 - 🇵🇹 **Portuguese** (Português) - Native support
 - 🇮🇹 **Italian** (Italiano) - Native support
 - 🇳🇱 **Dutch** (Nederlands) - Native support
-
-### Eastern Languages
-
 - 🇯🇵 **Japanese** (日本語) - Full localization
 - 🇰🇷 **Korean** (한국어) - Full localization
 - 🇨🇳 **Chinese Simplified** (中文简体) - Full localization
 - 🇷🇺 **Russian** (Русский) - Full localization
-
-### Additional Languages
-
 - 🇵🇱 **Polish** (Polski) - Full localization
 - 🇸🇦 **Arabic** (العربية) - Full localization (RTL supported)
 - 🇹🇷 **Turkish** (Türkçe) - Full localization

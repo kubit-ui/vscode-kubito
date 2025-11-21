@@ -1010,14 +1010,14 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
         const timeSinceLastLanding = Date.now() - this.lastLandingTime;
         const isInLandingCooldown = timeSinceLastLanding < KUBITO_CONFIG.POST_JUMP_COOLDOWN;
 
-        // Show messages when not jumping, not in jump cooldown, not in landing cooldown, and in safe zone
+        // Show messages when not jumping, not in jump cooldown, not in landing cooldown
         // Messages only appear during PAUSED state
+        // Safe zone validation is done in showMessage() method
         if (
           !this.isJumping &&
           !isInJumpCooldown &&
           !isInLandingCooldown &&
-          this.kubitoState === KubitoState.PAUSED &&
-          this.isInSafeZone()
+          this.kubitoState === KubitoState.PAUSED
         ) {
           this.showRandomMessage();
         }
@@ -1148,6 +1148,11 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
       return;
     }
 
+    // Don't show messages if Kubito is not in safe zone
+    if (!this.isInSafeZone()) {
+      return;
+    }
+
     // Cancel any active random message timer
     if (this.messageInterval) {
       clearTimeout(this.messageInterval);
@@ -1169,6 +1174,11 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
    */
   private showMessage(message: IMessage): void {
     if (this.isShowingMessage || this.isJumping) {
+      return;
+    }
+
+    // Don't show messages if Kubito is not in safe zone
+    if (!this.isInSafeZone()) {
       return;
     }
 
