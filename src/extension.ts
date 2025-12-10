@@ -139,11 +139,79 @@ function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
+  // Command to enable Christmas mode
+  const enableChristmasCommand = vscode.commands.registerCommand(
+    'kubito.enableChristmasMode',
+    async (): Promise<void> => {
+      const config = vscode.workspace.getConfiguration('kubito');
+      await config.update('christmasMode', 'enabled', vscode.ConfigurationTarget.Global);
+
+      // Show confirmation with option to disable
+      const selection = await vscode.window.showInformationMessage(
+        '🎄 Christmas mode enabled! Enjoy the festive decorations!',
+        'Disable',
+        'Settings',
+        'OK'
+      );
+
+      if (selection === 'Disable') {
+        await vscode.commands.executeCommand('kubito.disableChristmasMode');
+        return;
+      } else if (selection === 'Settings') {
+        await vscode.commands.executeCommand(
+          'workbench.action.openSettings',
+          'kubito.christmasMode'
+        );
+        return;
+      }
+
+      // Refresh the webview to apply changes
+      if (kubitoWebviewProvider) {
+        kubitoWebviewProvider.refresh();
+      }
+    }
+  );
+
+  // Command to disable Christmas mode
+  const disableChristmasCommand = vscode.commands.registerCommand(
+    'kubito.disableChristmasMode',
+    async (): Promise<void> => {
+      const config = vscode.workspace.getConfiguration('kubito');
+      await config.update('christmasMode', 'disabled', vscode.ConfigurationTarget.Global);
+
+      // Show confirmation with option to re-enable
+      const selection = await vscode.window.showInformationMessage(
+        '❌ Christmas mode disabled. You can re-enable it anytime!',
+        'Re-enable',
+        'Settings',
+        'OK'
+      );
+
+      if (selection === 'Re-enable') {
+        await vscode.commands.executeCommand('kubito.enableChristmasMode');
+        return;
+      } else if (selection === 'Settings') {
+        await vscode.commands.executeCommand(
+          'workbench.action.openSettings',
+          'kubito.christmasMode'
+        );
+        return;
+      }
+
+      // Refresh the webview to apply changes
+      if (kubitoWebviewProvider) {
+        kubitoWebviewProvider.refresh();
+      }
+    }
+  );
+
   context.subscriptions.push(
     showKubitoCommand,
     hideKubitoCommand,
     openEventSettingsCommand,
-    showMetricsCommand
+    showMetricsCommand,
+    enableChristmasCommand,
+    disableChristmasCommand
   );
 }
 
@@ -297,6 +365,9 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
       this.handleProductivityMessage(message)
     );
 
+    // Check if Christmas mode should show welcome notification
+    void this.checkChristmasWelcome();
+
     // Clean up when webview is disposed
     webviewView.onDidDispose(() => {
       this._view = undefined;
@@ -360,7 +431,8 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
     return {
       contextualMessages: config.get<boolean>('contextualMessages', true),
       language: config.get<string>('language', 'auto'),
-      autoShow: config.get<boolean>('autoShow', true)
+      autoShow: config.get<boolean>('autoShow', true),
+      christmasMode: config.get<string>('christmasMode', 'auto')
     };
   }
 
@@ -448,6 +520,61 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
   }
 
   /**
+   * Check if Christmas mode is active and show welcome notification (only once per session)
+   */
+  private async checkChristmasWelcome(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('kubito');
+    const christmasMode = config.get<string>('christmasMode', 'auto');
+
+    // Check if Christmas mode is active
+    let isChristmasActive = false;
+    if (christmasMode === 'enabled') {
+      isChristmasActive = true;
+    } else if (christmasMode === 'auto') {
+      const now = new Date();
+      const month = now.getMonth(); // 0 = January, 11 = December
+      isChristmasActive = month === 11;
+    }
+
+    if (!isChristmasActive) {
+      return;
+    }
+
+    // Check if we've already shown the welcome notification in this session
+    const hasShownWelcome = this._context.globalState.get<boolean>(
+      'kubito.christmasWelcomeShown',
+      false
+    );
+    if (hasShownWelcome) {
+      return;
+    }
+
+    // Delay to let user see and appreciate the decorations first
+    setTimeout(async () => {
+      // Show welcome notification with action buttons
+      const selection = await vscode.window.showInformationMessage(
+        '🎄 Kubito is in Christmas mode! Enjoying the festive decorations?',
+        'Keep it',
+        'Disable',
+        'Settings'
+      );
+
+      // Handle user selection
+      if (selection === 'Disable') {
+        await vscode.commands.executeCommand('kubito.disableChristmasMode');
+      } else if (selection === 'Settings') {
+        await vscode.commands.executeCommand(
+          'workbench.action.openSettings',
+          'kubito.christmasMode'
+        );
+      }
+
+      // Mark as shown (regardless of selection)
+      await this._context.globalState.update('kubito.christmasWelcomeShown', true);
+    }, 8000); // 8 seconds delay to let user see the decorations, messages, and fully understand what Christmas mode is
+  }
+
+  /**
    * Get all media resource URIs converted for webview usage
    * Converts local file URIs to webview-compatible URIs for security
    * @param webview - The webview instance for URI conversion
@@ -456,13 +583,35 @@ class KubitoWebviewProvider implements IKubitoWebviewProvider {
   private getResourceUris(webview: vscode.Webview): Record<string, vscode.Uri> {
     const mediaPath = vscode.Uri.joinPath(this._context.extensionUri, 'media');
 
+    // Check if Christmas mode is active to use Christmas-themed GIFs
+    const config = vscode.workspace.getConfiguration('kubito');
+    const christmasMode = config.get<string>('christmasMode', 'auto');
+    let useChristmasGifs = false;
+
+    if (christmasMode === 'enabled') {
+      useChristmasGifs = true;
+    } else if (christmasMode === 'auto') {
+      const now = new Date();
+      const month = now.getMonth(); // 0 = January, 11 = December
+      useChristmasGifs = month === 11;
+    }
+
+    // Determine GIF suffix based on Christmas mode
+    const gifSuffix = useChristmasGifs ? '-christmas.gif' : '.gif';
+
     return {
-      // Kubito animation assets
-      walkingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-walking.gif')),
-      jumpingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-jumping.gif')),
-      idleGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-idle.gif')),
-      wavingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-waving.gif')),
-      footingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito-footing.gif')),
+      // Kubito animation assets (with Christmas variants when active)
+      walkingGif: webview.asWebviewUri(
+        vscode.Uri.joinPath(mediaPath, `kubito-walking${gifSuffix}`)
+      ),
+      jumpingGif: webview.asWebviewUri(
+        vscode.Uri.joinPath(mediaPath, `kubito-jumping${gifSuffix}`)
+      ),
+      idleGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, `kubito-idle${gifSuffix}`)),
+      wavingGif: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, `kubito-waving${gifSuffix}`)),
+      footingGif: webview.asWebviewUri(
+        vscode.Uri.joinPath(mediaPath, `kubito-footing${gifSuffix}`)
+      ),
 
       // Styles and scripts
       css: webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'kubito.css')),

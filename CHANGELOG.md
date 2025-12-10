@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2024-12-10
+
+### ✨ Added
+
+- **🎄 Christmas Mode** - Festive holiday theme with visual decorations and contextual messages
+  - **Automatic Activation** - Automatically enables during December (configurable)
+  - **Configuration Options** - Three modes: `auto` (December only), `enabled` (always on), `disabled` (never)
+  - **Visual Decorations**:
+    - Animated snowflakes with random sizes, speeds, and positions (15 snowflakes)
+    - Christmas lights garland with red/green alternating lights (20 lights with flash animation)
+    - Shooting stars with multiple trajectories (diagonal, steep, gentle)
+  - **Christmas Messages** - 10 new contextual messages in 14 languages:
+    - `merryChristmas`, `hoHoHo`, `santaApproves`, `christmasSpirit`, `jingleCode`
+    - `christmasCommit`, `winterCoding`, `giftOfCode`, `codingElf`, `sleighride`
+  - **Christmas-Themed Animations** - 5 new GIF variants with Santa hat:
+    - `kubito-idle-christmas.gif`, `kubito-walking-christmas.gif`, `kubito-jumping-christmas.gif`
+    - `kubito-waving-christmas.gif`, `kubito-footing-christmas.gif`
+  - **Welcome Notification** - User-friendly onboarding for Christmas mode:
+    - Appears 8 seconds after webview loads (allows users to see decorations first)
+    - Three action buttons: "Keep it", "Disable", "Settings"
+    - Shows only once per user using VS Code globalState persistence
+  - **Commands**:
+    - `Kubito: Enable Christmas Mode` - Force enable decorations
+    - `Kubito: Disable Christmas Mode` - Force disable decorations
+  - **Localization** - Complete translations for all 14 supported languages (EN, ES, FR, DE, PT, IT, JA, KO, ZH-CN, RU, NL, PL, TR, AR)
+
+
 ## [2.5.1] - 2025-11-21
 
 ### 🐛 Bug Fixes
@@ -21,7 +48,7 @@ and this project adheres to
 
 - **README.md Updates** - Enhanced documentation with demo GIF as visual demonstration of extension functionality
 
-## [2.5.0] - 2025-11-19
+## [2.6.0] - 2025-11-19
 
 ### ✨ Added
 

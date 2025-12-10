@@ -15,7 +15,8 @@ enum TimeContext {
   MONDAY = 'monday',
   FRIDAY = 'friday',
   WEEKEND = 'weekend',
-  WORKDAY = 'workday'
+  WORKDAY = 'workday',
+  CHRISTMAS = 'christmas'
 }
 
 /**
@@ -57,8 +58,204 @@ const CONTEXTUAL_MESSAGES: Record<TimeContext, string[]> = {
   [TimeContext.MONDAY]: ['mondayBlues', 'letsCode', 'coffee', 'motivated'],
   [TimeContext.FRIDAY]: ['fridayFeeling', 'deployFriday', 'almostThere', 'weekend'],
   [TimeContext.WEEKEND]: ['weekend', 'procrastinating', 'inspired', 'sideProject', 'chillin'],
-  [TimeContext.WORKDAY]: ['productive', 'keepCoding', 'meetingTime', 'debugTime']
+  [TimeContext.WORKDAY]: ['productive', 'keepCoding', 'meetingTime', 'debugTime'],
+  [TimeContext.CHRISTMAS]: [
+    'merryChristmas',
+    'hoHoHo',
+    'santaApproves',
+    'christmasSpirit',
+    'jingleCode',
+    'christmasCommit',
+    'winterCoding',
+    'giftOfCode',
+    'codingElf',
+    'sleighride'
+  ]
 };
+
+/**
+ * Check if Christmas mode should be active based on configuration
+ */
+function shouldEnableChristmasMode(): boolean {
+  // Get configuration from window object injected by extension
+  const config = (window as any).kubitoConfig || {};
+  const christmasMode = config.christmasMode || 'auto';
+
+  if (christmasMode === 'enabled') {
+    return true;
+  }
+
+  if (christmasMode === 'disabled') {
+    return false;
+  }
+
+  // Auto mode: check if it's December
+  const now = new Date();
+  const month = now.getMonth(); // 0 = January, 11 = December
+  const isDecember = month === 11;
+  return isDecember;
+}
+
+/**
+ * Create snowflakes for Christmas decoration
+ */
+function createSnowflakes(): HTMLElement {
+  const snowflakesContainer = document.createElement('div');
+  snowflakesContainer.className = 'snowflakes';
+  snowflakesContainer.setAttribute('aria-hidden', 'true');
+
+  // Create 15 snowflakes with random properties
+  const snowflakeSymbols = ['❄', '❅', '❆', '✻', '✼', '❉'];
+  const numberOfSnowflakes = 15;
+
+  for (let i = 0; i < numberOfSnowflakes; i++) {
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+
+    // Random snowflake symbol
+    snowflake.textContent = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+
+    // Random horizontal position
+    snowflake.style.left = Math.random() * 100 + '%';
+
+    // Random animation duration (slower = more realistic)
+    const duration = 8 + Math.random() * 8; // 8-16 seconds
+    snowflake.style.animationDuration = duration + 's';
+
+    // Random animation delay (stagger the start)
+    const delay = Math.random() * 5; // 0-5 seconds delay
+    snowflake.style.animationDelay = delay + 's';
+
+    // Random size
+    const size = 0.8 + Math.random() * 0.8; // 0.8-1.6em
+    snowflake.style.fontSize = size + 'em';
+
+    // Random opacity
+    const opacity = 0.5 + Math.random() * 0.4; // 0.5-0.9
+    snowflake.style.opacity = opacity.toString();
+
+    snowflakesContainer.appendChild(snowflake);
+  }
+
+  return snowflakesContainer;
+}
+
+/**
+ * Create Christmas lights decoration
+ */
+function createChristmasLights(): HTMLElement {
+  const lightsContainer = document.createElement('div');
+  lightsContainer.className = 'christmas-lights';
+  lightsContainer.setAttribute('aria-hidden', 'true');
+
+  // Fixed number of lights that will distribute evenly across any width
+  // Using space-evenly will ensure good spacing regardless of container size
+  const numberOfLights = 20;
+
+  for (let i = 0; i < numberOfLights; i++) {
+    const light = document.createElement('div');
+    light.className =
+      i % 2 === 0 ? 'christmas-light christmas-light-red' : 'christmas-light christmas-light-green';
+    lightsContainer.appendChild(light);
+  }
+
+  return lightsContainer;
+}
+
+/**
+ * Create a Christmas shooting star with random trajectory
+ */
+function createChristmasStar(): HTMLElement {
+  const star = document.createElement('div');
+  star.className = 'christmas-star';
+  star.setAttribute('aria-hidden', 'true');
+
+  // Random trajectory variant
+  const trajectories = ['diagonal', 'steep', 'gentle'];
+  const randomTrajectory = trajectories[Math.floor(Math.random() * trajectories.length)];
+  star.classList.add(randomTrajectory);
+
+  // Random starting position (top 40% of container, right side)
+  const topPosition = Math.random() * 40 + 5; // 5-45% from top
+  const rightPosition = Math.random() * 10 - 5; // -5% to 5% (some start off-screen)
+  star.style.top = topPosition + '%';
+  star.style.right = rightPosition + '%';
+
+  return star;
+}
+
+/**
+ * Launch a Christmas shooting star
+ */
+function launchChristmasStar(): void {
+  const container = document.getElementById('container');
+  if (!container || !shouldEnableChristmasMode()) {
+    return;
+  }
+
+  const star = createChristmasStar();
+  container.appendChild(star);
+
+  // Remove star after animation (3 seconds max)
+  setTimeout(() => {
+    if (star.parentNode) {
+      star.parentNode.removeChild(star);
+    }
+  }, 3000);
+}
+
+/**
+ * Start Christmas shooting stars with random intervals
+ */
+function startChristmasStars(): void {
+  const scheduleNextStar = (): void => {
+    if (!shouldEnableChristmasMode()) {
+      return;
+    }
+
+    // Random delay between 30-60 seconds (rare event)
+    const delay = 30000 + Math.random() * 30000;
+    setTimeout(() => {
+      launchChristmasStar();
+      scheduleNextStar();
+    }, delay);
+  };
+
+  // Launch first star after 15-30 seconds
+  const initialDelay = 15000 + Math.random() * 15000;
+  setTimeout(() => {
+    launchChristmasStar();
+    scheduleNextStar();
+  }, initialDelay);
+}
+
+/**
+ * Initialize Christmas mode based on configuration
+ */
+function initializeChristmasMode(): void {
+  if (!shouldEnableChristmasMode()) {
+    return;
+  }
+
+  const container = document.getElementById('container');
+  if (!container) {
+    return;
+  }
+
+  // Add Christmas mode class to container
+  container.classList.add('christmas-mode');
+
+  // Create and add snowflakes
+  const snowflakes = createSnowflakes();
+  container.appendChild(snowflakes);
+
+  // Create and add Christmas lights
+  const lights = createChristmasLights();
+  container.appendChild(lights);
+
+  // Start Christmas shooting stars
+  startChristmasStars();
+}
 
 /**
  * Gets current time contexts based on system time
@@ -96,6 +293,11 @@ function getCurrentTimeContexts(): TimeContext[] {
     contexts.push(TimeContext.WORKDAY);
   }
 
+  // Add Christmas context if mode is active
+  if (shouldEnableChristmasMode()) {
+    contexts.push(TimeContext.CHRISTMAS);
+  }
+
   return contexts;
 }
 
@@ -104,14 +306,24 @@ function getCurrentTimeContexts(): TimeContext[] {
  */
 function getContextualMessageKeys(): string[] {
   const contexts = getCurrentTimeContexts();
-  const contextualKeys = new Set<string>();
 
+  // If Christmas mode is active, ONLY show Christmas messages
+  const hasChristmas = contexts.includes(TimeContext.CHRISTMAS);
+
+  if (hasChristmas) {
+    const christmasMessages = CONTEXTUAL_MESSAGES[TimeContext.CHRISTMAS] || [];
+    // Return only Christmas messages (no other context messages)
+    return christmasMessages;
+  }
+
+  // Otherwise, return all contextual messages normally
+  const contextualKeys: string[] = [];
   contexts.forEach(context => {
     const messages = CONTEXTUAL_MESSAGES[context] || [];
-    messages.forEach(key => contextualKeys.add(key));
+    messages.forEach(key => contextualKeys.push(key));
   });
 
-  return Array.from(contextualKeys);
+  return contextualKeys;
 }
 
 /**
@@ -342,6 +554,9 @@ function getLocalizedMessages(): readonly IMessage[] {
     { type: 'text', content: getWebviewTranslation('earlyBird') },
     { type: 'text', content: getWebviewTranslation('nightOwl') },
     { type: 'text', content: getWebviewTranslation('weekend') },
+    { type: 'text', content: getWebviewTranslation('motivated') },
+    { type: 'text', content: getWebviewTranslation('meetingTime') },
+    { type: 'text', content: getWebviewTranslation('sideProject') },
     { type: 'text', content: getWebviewTranslation('vacation') },
     { type: 'text', content: getWebviewTranslation('deadline') },
     { type: 'text', content: getWebviewTranslation('crunchTime') },
@@ -361,7 +576,19 @@ function getLocalizedMessages(): readonly IMessage[] {
 
     // Kubit branding images (localized alt text)
     { type: 'image', content: 'kubit-logo', alt: getWebviewTranslation('kubitLogo') },
-    { type: 'image', content: 'kubit-love', alt: getWebviewTranslation('kubitLove') }
+    { type: 'image', content: 'kubit-love', alt: getWebviewTranslation('kubitLove') },
+
+    // Christmas messages (conditionally added when Christmas mode is active)
+    { type: 'text', content: getWebviewTranslation('merryChristmas') },
+    { type: 'text', content: getWebviewTranslation('hoHoHo') },
+    { type: 'text', content: getWebviewTranslation('santaApproves') },
+    { type: 'text', content: getWebviewTranslation('christmasSpirit') },
+    { type: 'text', content: getWebviewTranslation('jingleCode') },
+    { type: 'text', content: getWebviewTranslation('christmasCommit') },
+    { type: 'text', content: getWebviewTranslation('winterCoding') },
+    { type: 'text', content: getWebviewTranslation('giftOfCode') },
+    { type: 'text', content: getWebviewTranslation('codingElf') },
+    { type: 'text', content: getWebviewTranslation('sleighride') }
   ] as const;
 }
 
@@ -448,7 +675,18 @@ function getMessageMap(): Map<string, IMessage> {
     'metaverse',
     'blockchain',
     'cloud',
-    'serverless'
+    'serverless',
+    // Christmas messages
+    'merryChristmas',
+    'hoHoHo',
+    'santaApproves',
+    'christmasSpirit',
+    'jingleCode',
+    'christmasCommit',
+    'winterCoding',
+    'giftOfCode',
+    'codingElf',
+    'sleighride'
   ];
 
   textMessages.forEach(key => {
@@ -611,7 +849,9 @@ class KubitoController implements IKubitoAnimator, IAnimationState {
       // This ensures Kubito can move through the entire visible area
       this.container.style.height = windowHeight + 'px';
       document.body.style.height = windowHeight + 'px';
+      document.body.style.overflow = 'hidden';
       document.documentElement.style.height = windowHeight + 'px';
+      document.documentElement.style.overflow = 'hidden';
     };
 
     // Initial height adjustment
@@ -1687,6 +1927,9 @@ let kubitoController: KubitoController | null = null;
 
 function initializeKubito(): void {
   try {
+    // Initialize Christmas mode if it's December
+    initializeChristmasMode();
+
     kubitoController = new KubitoController();
     kubitoController.start();
   } catch (error) {
