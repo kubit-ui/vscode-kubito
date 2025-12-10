@@ -102,6 +102,17 @@ export interface ITranslations {
     blockchain: string;
     cloud: string;
     serverless: string;
+    // Christmas messages
+    merryChristmas: string;
+    hoHoHo: string;
+    santaApproves: string;
+    christmasSpirit: string;
+    jingleCode: string;
+    christmasCommit: string;
+    winterCoding: string;
+    giftOfCode: string;
+    codingElf: string;
+    sleighride: string;
   };
   commands: {
     show: string;

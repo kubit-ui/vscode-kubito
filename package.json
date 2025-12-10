@@ -69,6 +69,14 @@
       {
         "command": "kubito.showMetrics",
         "title": "Kubito: Show Productivity Metrics"
+      },
+      {
+        "command": "kubito.enableChristmasMode",
+        "title": "Kubito: Enable Christmas Mode"
+      },
+      {
+        "command": "kubito.disableChristmasMode",
+        "title": "Kubito: Disable Christmas Mode"
       }
     ],
     "configuration": {
@@ -122,6 +130,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show time and day-appropriate messages (e.g., 'Monday Blues' on Monday mornings, 'Working Late' in the evening)"
+        },
+        "kubito.christmasMode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "enabled",
+            "disabled"
+          ],
+          "enumDescriptions": [
+            "Automatically enable during December",
+            "Always show Christmas decorations",
+            "Never show Christmas decorations"
+          ],
+          "default": "auto",
+          "description": "Control Christmas theme with snowflakes and lights"
         },
         "kubito.events.fileSave": {
           "type": "boolean",
