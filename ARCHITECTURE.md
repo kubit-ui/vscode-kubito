@@ -18,7 +18,12 @@ media/
 ├── kubito-jumping.gif   # Jumping animation
 ├── kubito-idle.gif      # Idle animation
 ├── kubito-waving.gif    # Waving greeting animation
-├── kubito-footing.gif   # Dragging/falling animation (new)
+├── kubito-footing.gif   # Dragging/falling animation
+├── kubito-idle-christmas.gif    # Christmas variant: Idle animation with Santa hat
+├── kubito-walking-christmas.gif # Christmas variant: Walking with Santa hat
+├── kubito-jumping-christmas.gif # Christmas variant: Jumping with Santa hat
+├── kubito-waving-christmas.gif  # Christmas variant: Waving with Santa hat
+├── kubito-footing-christmas.gif # Christmas variant: Dragging/falling with Santa hat
 ├── kubit-logo.png       # Custom message icon
 └── kubit-love.png       # Custom message icon
 ```
@@ -62,6 +67,19 @@ out/                     # Compiled extension files
   collisions
 - **Priority Handling**: Jump interactions cancel active messages
 - **Content Types**: Emojis, text, and custom Kubit team images
+- **Christmas Mode Integration**: 100% Christmas-themed text messages when active (emojis still work)
+
+### **4. Configuration System**
+
+- **Christmas Mode**: Seasonal theme with decorations and themed animations
+  - **Auto Mode** (default): Automatically enables during December
+  - **Enabled**: Force Christmas mode year-round
+  - **Disabled**: Disable Christmas mode even in December
+- **Dynamic Asset Loading**: Switches between normal and Christmas GIF variants based on configuration
+- **Welcome Notification**: One-time notification with 8-second delay to inform users about Christmas mode
+- **Commands**:
+  - `kubito.enableChristmas`: Enable Christmas mode
+  - `kubito.disableChristmas`: Disable Christmas mode
 
 ## 🎨 Animation States & Movement System
 
@@ -103,7 +121,9 @@ PAUSED/WANDERING/TALKING ──mousedown+mousemove──→ DRAGGING ──drop�
 - **Walking State**: `kubito-walking.gif` - Smooth continuous movement animation
 - **Jumping State**: `kubito-jumping.gif` - Jump sequence with landing
 - **Idle State**: `kubito-idle.gif` - Idle animation
-- **Dragging/Falling State**: `kubito-footing.gif` - Used during drag and fall states (NEW)
+- **Dragging/Falling State**: `kubito-footing.gif` - Used during drag and fall states
+- **Christmas Variants**: All animations have `-christmas.gif` variants with Santa hat
+- **Dynamic Loading**: GIF source switches based on `christmasMode` configuration
 - **Direction Classes**: `walking-right` / `walking-left` for CSS transforms
 
 ### **Smart Timing System**
@@ -184,6 +204,17 @@ THROW_MIN_VELOCITY: 0.5         // Velocity threshold to stop horizontal movemen
 4. Smart positioning → Prevent edge collisions with 70% center safe zone
 5. After 3s → Fade out bubble → Brief pause before returning to wandering
 
+### **Christmas Mode Flow**
+
+1. **Configuration Check**: Read `kubito.christmasMode` setting ('auto'/'enabled'/'disabled')
+2. **Auto Detection**: If 'auto' → check if current month is December
+3. **Asset Selection**: Load `-christmas.gif` variants if Christmas mode active
+4. **CSS Decorations**: Apply Christmas decorations (snowflakes, lights, shooting stars)
+5. **Message Pool**: Switch to 100% Christmas-themed text messages (10 messages in 14 languages)
+6. **Welcome Notification**: Show one-time notification after 8 seconds (if not previously shown)
+7. **User Actions**: User can keep, disable, or open settings from notification
+8. **Persistence**: Store notification state in globalState to show only once
+
 ### **Performance Optimizations**
 
 1. **Efficient DOM Updates**: State tracking prevents unnecessary image changes
@@ -218,6 +249,40 @@ vsce package             # Creates .vsix file
 - **Smart Safe Zone**: 70% center area reduces collision detection overhead
 - **Velocity-Based Physics** (NEW): Early termination of physics calculations when velocity below minimum thresholds
 - **Efficient Collision Detection** (NEW): Optimized boundary checks for smooth interactions
+
+## 🎄 Christmas Mode Architecture
+
+### **CSS Decorations**
+
+Seven CSS animations create the festive atmosphere:
+
+1. **Snowflakes** (`@keyframes snowfall`): Three layers with different speeds and sizes
+2. **Christmas Lights** (`@keyframes blink`): Alternating red/green lights with twinkling effect
+3. **Shooting Stars** (`@keyframes shooting-star`): Three variants with different trajectories
+
+### **Localization System**
+
+- **10 Christmas Messages**: Added to all 14 supported languages
+- **ITranslations Interface**: Extended with Christmas message fields
+- **Message Priority**: When Christmas mode active, text messages are 100% Christmas-themed
+- **Emoji Support**: Emoji messages continue to work alongside Christmas messages
+
+### **Configuration Architecture**
+
+```typescript
+enum ChristmasMode {
+  auto = 'auto',      // Default: auto-detect December
+  enabled = 'enabled', // Force enabled year-round
+  disabled = 'disabled' // Force disabled even in December
+}
+```
+
+### **Asset Management**
+
+- **Naming Convention**: Base GIF + `-christmas.gif` suffix
+- **Dynamic Loading**: `getGifPath()` function checks configuration and appends suffix
+- **Fallback Safety**: If Christmas variant missing, falls back to normal GIF
+- **5 Animation Variants**: All Kubito states have Christmas versions
 
 ## 🔒 Security Considerations
 

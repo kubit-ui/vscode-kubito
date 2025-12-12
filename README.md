@@ -24,6 +24,7 @@
 - 🏆 **Coding Metrics**: Track lines of code, session time, and get productivity
   insights
 - 🌍 **14 Languages**: Multilingual support for a global audience
+- 🎄 **Christmas Mode**: Festive decorations, themed animations, and holiday messages during December
 
 ## 🚀 Getting Started
 
@@ -43,6 +44,7 @@
 | 🖱️ **Click on him**    | Make Kubito jump!                                         |
 | 🎯 **Drag & Drop**     | Grab and throw Kubito anywhere - he'll fall with physics! |
 | ⏰ **Watch and wait**  | Kubito autonomously walks, pauses, and jumps              |
+| 🎄 **Christmas Mode**  | Enjoy festive decorations and Kubito with Santa hat       |
 | 💾 **Save a file**     | Kubito shows reassuring save reactions                   |
 | ✅ **Git commit**      | Kubito celebrates your commits with messages              |
 | 🚀 **Git push**        | Kubito cheers when you push your code!                    |
@@ -60,6 +62,7 @@ Access in: `Settings > Extensions > Kubito`
   auto)_
 - **Contextual Messages** → Show time and day-appropriate messages _(default:
   on)_
+- **Christmas Mode** → Enable festive decorations and themed animations _(default: auto - activates in December)_
 
 ### 🎬 Event Reactions
 
@@ -116,6 +119,8 @@ select your preferred language in the extension settings.
   Kubito will celebrate with you!
 - **Too many reactions?** You can disable file save, commit, or push reactions
   in Settings → Extensions → Kubito
+- **🎄 Love Christmas Mode?** Set it to `enabled` in settings to enjoy festive decorations year-round!
+- **Not a fan of decorations?** Set Christmas Mode to `disabled` in settings to keep it off even in December
 
 ## 🤝 Support & Feedback
 
