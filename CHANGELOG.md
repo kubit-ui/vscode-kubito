@@ -1,5 +1,13 @@
 # vscode-kubito
 
+## 2.7.2
+
+### Patch Changes
+
+- Include new vscode version
+
+  PR: #21
+
 ## 2.7.1
 
 ### Patch Changes

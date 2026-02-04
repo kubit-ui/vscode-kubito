@@ -2,7 +2,7 @@
   "name": "vscode-kubito",
   "displayName": "Kubito - Your Coding Companion",
   "description": "An interactive and animated companion for your VS Code editor. Kubito walks around, jumps and shows programming messages that adapt to time and day, including productivity stats and reminders.",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "publisher": "Kubit",
   "author": {
     "name": "Kubit",
