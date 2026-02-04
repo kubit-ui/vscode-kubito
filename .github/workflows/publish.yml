@@ -17,7 +17,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - cms
+      - main
 
 permissions:
   contents: write
@@ -185,7 +185,7 @@ jobs:
             echo "No version changes to commit"
           else
             git commit -m "chore: version packages [skip ci]"
-            git push origin cms
+            git push origin main
           fi
 
       - name: Build extension
@@ -270,7 +270,7 @@ jobs:
           gh release create "$TAG" \
             --title "vscode-kubito v$VERSION" \
             --notes "$CHANGELOG" \
-            --target cms \
+            --target main \
             *.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
