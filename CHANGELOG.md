@@ -1,5 +1,12 @@
 # vscode-kubito
 
+## 2.7.4
+
+### Patch Changes
+
+- Modify changelog showing links
+  ([#23](https://github.com/kubit-ui/vscode-kubito/pull/23))
+
 ## 2.7.3
 
 ### Patch Changes
