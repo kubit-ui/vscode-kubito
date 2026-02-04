@@ -18,9 +18,11 @@
   },
   "homepage": "https://github.com/kubit-ui/vscode-kubito#readme",
   "icon": "icon.png",
+  "packageManager": "pnpm@10.8.1",
   "engines": {
-    "vscode": "^1.74.0",
-    "node": ">=18.0.0"
+    "vscode": "^1.108.0",
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
   },
   "categories": [
     "Other"
