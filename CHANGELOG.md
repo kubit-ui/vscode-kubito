@@ -1,5 +1,13 @@
 # vscode-kubito
 
+## 2.7.1
+
+### Patch Changes
+
+- Include changesets and vsx versioning
+
+  PR: #20
+
 ## Changelog
 
 All notable changes to this project will be documented in this file.
@@ -156,8 +164,8 @@ this project adheres to
 
 - **📦 Modular Architecture** - New ProductivityManager class for clean
   separation of concerns
-- **⚡️ Performance Optimization** - Efficient event tracking with proper
-  cleanup and resource management
+- **⚡️ Performance Optimization** - Efficient event tracking with proper cleanup
+  and resource management
 - **🛡️ Type Safety** - Full TypeScript implementation with comprehensive
   interfaces
 
@@ -210,8 +218,8 @@ this project adheres to
   commits
 - **🚀 Git Push Detection** - Shows "Pushed!" message when you push to remote
   repositories
-- **⚡️ Real-time Response** - Immediate reactions using file system watchers
-  for `.git/logs/HEAD` and `.git/logs/refs/remotes`
+- **⚡️ Real-time Response** - Immediate reactions using file system watchers for
+  `.git/logs/HEAD` and `.git/logs/refs/remotes`
 
 ### ⚙️ Enhanced Configuration
 
