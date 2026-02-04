@@ -244,6 +244,14 @@ jobs:
         run: |
           echo "🚀 Publishing to Open VSX Registry..."
 
+          # Check if OVSX_PAT is set
+          if [ -z "${{ secrets.OVSX_PAT }}" ]; then
+            echo "⚠️ OVSX_PAT secret not set - skipping Open VSX publish"
+            echo "See .github/OPEN_VSX_SETUP.md for setup instructions"
+            echo "published=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           # Install ovsx CLI if not already installed
           if ! command -v ovsx &> /dev/null; then
             echo "Installing ovsx CLI..."
@@ -251,10 +259,26 @@ jobs:
           fi
 
           # Publish to Open VSX
-          ovsx publish *.vsix -p ${{ secrets.OVSX_PAT }}
-
-          echo "Successfully published to Open VSX Registry"
-          echo "published=true" >> $GITHUB_OUTPUT
+          if ovsx publish *.vsix -p ${{ secrets.OVSX_PAT }} 2>&1 | tee /tmp/ovsx-output.log; then
+            echo "✅ Successfully published to Open VSX Registry"
+            echo "published=true" >> $GITHUB_OUTPUT
+          else
+            # Check if it's a namespace error
+            if grep -q "Unknown publisher" /tmp/ovsx-output.log; then
+              echo "⚠️ Namespace 'Kubit' doesn't exist on Open VSX yet"
+              echo "📝 First-time setup required:"
+              echo "   1. Create account at https://open-vsx.org/"
+              echo "   2. Manually publish first version to claim namespace:"
+              echo "      pnpm add -g ovsx"
+              echo "      ovsx publish *.vsix -p YOUR_TOKEN"
+              echo "   3. After first manual publish, this workflow will work automatically"
+              echo ""
+              echo "See .github/OPEN_VSX_SETUP.md for detailed instructions"
+            else
+              echo "❌ Open VSX publish failed - check logs above"
+            fi
+            echo "published=false" >> $GITHUB_OUTPUT
+          fi
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
@@ -319,7 +343,9 @@ jobs:
             if (openVsxPublished) {
               comment += '- ✅ Open VSX Registry (for VSCodium, Gitpod, Eclipse Theia)\n';
             } else {
-              comment += '- ⚠️ Open VSX Registry (failed - check logs)\n';
+              comment += '- ⚠️ Open VSX Registry (not published - see logs for details)\n';
+              comment += '\n> **Note:** If this is the first publish, you need to manually claim the namespace on Open VSX.\n';
+              comment += '> See [.github/OPEN_VSX_SETUP.md](/.github/OPEN_VSX_SETUP.md) for instructions.\n';
             }
             comment += '\n**Installation:**\n';
             comment += '```bash\n';
