@@ -1,65 +1,90 @@
-# Changelog
+# vscode-kubito
+
+## Changelog
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to
+This project uses [Changesets](https://github.com/changesets/changesets) for
+automated version management and changelog generation. The changelog is
+automatically updated when releases are published.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
+this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
 
 ## [2.7.1] - 2024-12-11
 
 ### 📚 Documentation
 
-- **README Update** - Added Christmas Mode description for the extension's page on the marketplace
+- **README Update** - Added Christmas Mode description for the extension's page
+  on the marketplace
 - **ARCHITECTURE Update** - Added Christmas Mode technical documentation
 
 ## [2.7.0] - 2024-12-10
 
 ### ✨ Added
 
-- **🎄 Christmas Mode** - Festive holiday theme with visual decorations and contextual messages
-  - **Automatic Activation** - Automatically enables during December (configurable)
-  - **Configuration Options** - Three modes: `auto` (December only), `enabled` (always on), `disabled` (never)
+- **🎄 Christmas Mode** - Festive holiday theme with visual decorations and
+  contextual messages
+  - **Automatic Activation** - Automatically enables during December
+    (configurable)
+  - **Configuration Options** - Three modes: `auto` (December only), `enabled`
+    (always on), `disabled` (never)
   - **Visual Decorations**:
-    - Animated snowflakes with random sizes, speeds, and positions (15 snowflakes)
-    - Christmas lights garland with red/green alternating lights (20 lights with flash animation)
+    - Animated snowflakes with random sizes, speeds, and positions (15
+      snowflakes)
+    - Christmas lights garland with red/green alternating lights (20 lights with
+      flash animation)
     - Shooting stars with multiple trajectories (diagonal, steep, gentle)
   - **Christmas Messages** - 10 new contextual messages in 14 languages:
-    - `merryChristmas`, `hoHoHo`, `santaApproves`, `christmasSpirit`, `jingleCode`
+    - `merryChristmas`, `hoHoHo`, `santaApproves`, `christmasSpirit`,
+      `jingleCode`
     - `christmasCommit`, `winterCoding`, `giftOfCode`, `codingElf`, `sleighride`
   - **Christmas-Themed Animations** - 5 new GIF variants with Santa hat:
-    - `kubito-idle-christmas.gif`, `kubito-walking-christmas.gif`, `kubito-jumping-christmas.gif`
+    - `kubito-idle-christmas.gif`, `kubito-walking-christmas.gif`,
+      `kubito-jumping-christmas.gif`
     - `kubito-waving-christmas.gif`, `kubito-footing-christmas.gif`
   - **Welcome Notification** - User-friendly onboarding for Christmas mode:
-    - Appears 8 seconds after webview loads (allows users to see decorations first)
+    - Appears 8 seconds after webview loads (allows users to see decorations
+      first)
     - Three action buttons: "Keep it", "Disable", "Settings"
     - Shows only once per user using VS Code globalState persistence
   - **Commands**:
     - `Kubito: Enable Christmas Mode` - Force enable decorations
     - `Kubito: Disable Christmas Mode` - Force disable decorations
-  - **Localization** - Complete translations for all 14 supported languages (EN, ES, FR, DE, PT, IT, JA, KO, ZH-CN, RU, NL, PL, TR, AR)
-
+  - **Localization** - Complete translations for all 14 supported languages (EN,
+    ES, FR, DE, PT, IT, JA, KO, ZH-CN, RU, NL, PL, TR, AR)
 
 ## [2.5.1] - 2025-11-21
 
 ### 🐛 Bug Fixes
 
-- **Message Safe Zone Validation** - Fixed issue where productivity messages (reminders and metrics) and event-triggered messages were displaying outside of Kubito's safe zone, causing text overflow at container edges
-  - Added safe zone validation to `showEventMessage()` to prevent productivity messages from appearing at edges
-  - Refactored `showMessage()` to include safe zone check for consistent behavior across all message types
+- **Message Safe Zone Validation** - Fixed issue where productivity messages
+  (reminders and metrics) and event-triggered messages were displaying outside
+  of Kubito's safe zone, causing text overflow at container edges
+  - Added safe zone validation to `showEventMessage()` to prevent productivity
+    messages from appearing at edges
+  - Refactored `showMessage()` to include safe zone check for consistent
+    behavior across all message types
   - Removed redundant safe zone validation from `setupRandomMessages()` timer
-  - Centralized safe zone logic in message display methods for better maintainability
-  - All messages now respect the safe zone (center 70% of container with 15% margin on each side)
+  - Centralized safe zone logic in message display methods for better
+    maintainability
+  - All messages now respect the safe zone (center 70% of container with 15%
+    margin on each side)
 
 ### 📚 Documentation
 
-- **README.md Updates** - Enhanced documentation with demo GIF as visual demonstration of extension functionality
+- **README.md Updates** - Enhanced documentation with demo GIF as visual
+  demonstration of extension functionality
 
 ## [2.6.0] - 2025-11-19
 
 ### ✨ Added
 
-- **🎮 Interactive Drag & Drop** - Kubito can now be dragged and dropped anywhere in the webview
+- **🎮 Interactive Drag & Drop** - Kubito can now be dragged and dropped
+  anywhere in the webview
   - Click detection vs drag detection with 5px threshold
   - Gravity physics with terminal velocity and bounce effects
   - Progressive bounce damping (each bounce reduces more velocity)
@@ -80,11 +105,14 @@ and this project adheres to
 
 ### 🔧 Changed
 
-- **Coordinate System** - Refactored from top-based to bottom-based positioning for easier physics calculations
-- **Cursor Behavior** - Improved cursor states: `pointer` on hover, `grabbing` while dragging
-- **State Machine** - Enhanced with `DRAGGING` and `FALLING` states for drag & drop
-- **CSS** - Removed static `bottom: 0` positioning, now fully dynamic with JavaScript
-
+- **Coordinate System** - Refactored from top-based to bottom-based positioning
+  for easier physics calculations
+- **Cursor Behavior** - Improved cursor states: `pointer` on hover, `grabbing`
+  while dragging
+- **State Machine** - Enhanced with `DRAGGING` and `FALLING` states for drag &
+  drop
+- **CSS** - Removed static `bottom: 0` positioning, now fully dynamic with
+  JavaScript
 
 ## [2.5.0] - 2025-11-15
 

@@ -14,7 +14,8 @@
 
 - 🤖 **Walks Around**: Kubito walks back and forth in your Explorer
 - 🦘 **Autonomous Fun**: Kubito waves, talks and pauses randomly
-- 🎮 **Interactive**: Click to make Kubito jump, or grab and throw him with realistic gravity, bounce, and momentum across your screen!
+- 🎮 **Interactive**: Click to make Kubito jump, or grab and throw him with
+  realistic gravity, bounce, and momentum across your screen!
 - 💬 **Smart Messages**: Context-aware messages that adapt to time and day
   (Monday Blues, Friday Feeling, Working Late)
 - 📁 **Development Reactions**: Kubito reacts to your coding activities - file
@@ -24,16 +25,33 @@
 - 🏆 **Coding Metrics**: Track lines of code, session time, and get productivity
   insights
 - 🌍 **14 Languages**: Multilingual support for a global audience
-- 🎄 **Christmas Mode**: Festive decorations, themed animations, and holiday messages during December
+- 🎄 **Christmas Mode**: Festive decorations, themed animations, and holiday
+  messages during December
 
 ## 🚀 Getting Started
 
-1. **Install** → Search "Kubito" in VS Code Extensions and click Install
-2. **Find Him** → Look for "Kubito" section in your Explorer sidebar (left
+### Installation
+
+**VS Code / VSCodium:**
+
+```bash
+code --install-extension Kubit.vscode-kubito
+```
+
+Or search "Kubito" in the Extensions marketplace:
+
+- **VS Code**:
+  [Marketplace](https://marketplace.visualstudio.com/items?itemName=Kubit.vscode-kubito)
+- **VSCodium/Gitpod/Theia**:
+  [Open VSX](https://open-vsx.org/extension/Kubit/vscode-kubito)
+
+### Usage
+
+1. **Find Him** → Look for "Kubito" section in your Explorer sidebar (left
    panel)
-3. **Expand & Watch** → Click to expand if collapsed and watch Kubito start
+2. **Expand & Watch** → Click to expand if collapsed and watch Kubito start
    walking
-4. **Code**: Kubito reacts to your development workflow - save files, commit, or
+3. **Code**: Kubito reacts to your development workflow - save files, commit, or
    push to Git and see his responses!
 
 ## 🎮 How to Interact
@@ -45,7 +63,7 @@
 | 🎯 **Drag & Drop**     | Grab and throw Kubito anywhere - he'll fall with physics! |
 | ⏰ **Watch and wait**  | Kubito autonomously walks, pauses, and jumps              |
 | 🎄 **Christmas Mode**  | Enjoy festive decorations and Kubito with Santa hat       |
-| 💾 **Save a file**     | Kubito shows reassuring save reactions                   |
+| 💾 **Save a file**     | Kubito shows reassuring save reactions                    |
 | ✅ **Git commit**      | Kubito celebrates your commits with messages              |
 | 🚀 **Git push**        | Kubito cheers when you push your code!                    |
 | 💧 **Productivity**    | Kubito reminds you to take breaks, drink water            |
@@ -62,7 +80,8 @@ Access in: `Settings > Extensions > Kubito`
   auto)_
 - **Contextual Messages** → Show time and day-appropriate messages _(default:
   on)_
-- **Christmas Mode** → Enable festive decorations and themed animations _(default: auto - activates in December)_
+- **Christmas Mode** → Enable festive decorations and themed animations
+  _(default: auto - activates in December)_
 
 ### 🎬 Event Reactions
 
@@ -91,6 +110,7 @@ Enhance your coding workflow with intelligent reminders and metrics:
 
 Kubito speaks your language! All messages, reminders, and productivity features
 are fully localized in:
+
 - 🇪🇸 **Spanish** (Español) - Native support
 - 🇺🇸 **English** - Native support
 - 🇫🇷 **French** (Français) - Native support
@@ -119,8 +139,10 @@ select your preferred language in the extension settings.
   Kubito will celebrate with you!
 - **Too many reactions?** You can disable file save, commit, or push reactions
   in Settings → Extensions → Kubito
-- **🎄 Love Christmas Mode?** Set it to `enabled` in settings to enjoy festive decorations year-round!
-- **Not a fan of decorations?** Set Christmas Mode to `disabled` in settings to keep it off even in December
+- **🎄 Love Christmas Mode?** Set it to `enabled` in settings to enjoy festive
+  decorations year-round!
+- **Not a fan of decorations?** Set Christmas Mode to `disabled` in settings to
+  keep it off even in December
 
 ## 🤝 Support & Feedback
 

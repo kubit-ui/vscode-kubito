@@ -48,7 +48,7 @@ This project follows the **fork-based contribution model** to:
    - Follow the coding standards outlined in our style guide
    - Add or update tests for your changes
    - Update documentation if necessary
-   - Test your changes thoroughly using `npm test`
+   - Test your changes thoroughly using `pnpm test`
 
 6. **Commit Changes**: Use conventional commit messages for automatic
    versioning.
@@ -93,16 +93,16 @@ This project follows the **fork-based contribution model** to:
 
 ```sh
 # Install dependencies
-npm install
+pnpm install
 
 # Run tests
-npm test
+pnpm test
 
 # Compile the extension
-npm run compile
+pnpm run compile
 
 # Package the extension (optional)
-npm run package
+pnpm run package
 ```
 
 ### Important Notes for Contributors

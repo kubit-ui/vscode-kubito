@@ -30,23 +30,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '22'
 
-      - name: Setup Yarn and dependencies
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        shell: bash
         run: |
-          corepack enable
-          yarn --version
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-          # Check if yarn.lock exists and install accordingly
-          if [ -f "yarn.lock" ]; then
-            echo "yarn.lock found - installing with frozen lockfile"
-            yarn install --frozen-lockfile --prefer-offline
-          else
-            echo "No yarn.lock found - running fresh install"
-            yarn install
-            echo "Dependencies installed and lockfile generated"
-          fi
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pnpm --version
+          pnpm install --frozen-lockfile
 
       - name: Validate Branch Naming
         id: branch-validation
@@ -87,44 +93,13 @@ jobs:
         id: eslint-validation
         run: |
           echo "Running ESLint..."
-
-          # Check if ESLint script exists and run it
-          if yarn run --help | grep -q "lint"; then
-            echo "Found lint script, running ESLint..."
-            if yarn lint; then
-              echo "✅ ESLint passed"
-              echo "eslint_valid=true" >> $GITHUB_OUTPUT
-            else
-              echo "❌ ESLint failed - code must pass linting to merge"
-              echo "eslint_valid=false" >> $GITHUB_OUTPUT
-              exit 1  # This will fail the job and block merge
-            fi
-          elif yarn run --help | grep -q "eslint"; then
-            echo "Found eslint script, running ESLint..."
-            if yarn eslint; then
-              echo "✅ ESLint passed"
-              echo "eslint_valid=true" >> $GITHUB_OUTPUT
-            else
-              echo "❌ ESLint failed - code must pass linting to merge"
-              echo "eslint_valid=false" >> $GITHUB_OUTPUT
-              exit 1  # This will fail the job and block merge
-            fi
+          if pnpm lint; then
+            echo "✅ ESLint passed"
+            echo "eslint_valid=true" >> $GITHUB_OUTPUT
           else
-            echo "⚠️ No ESLint script found - checking for eslint.config.js"
-            if [ -f "eslint.config.js" ] || [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
-              echo "ESLint config found, running with npx..."
-              if npx eslint . --ext .js,.jsx,.ts,.tsx; then
-                echo "✅ ESLint passed"
-                echo "eslint_valid=true" >> $GITHUB_OUTPUT
-              else
-                echo "❌ ESLint failed - code must pass linting to merge"
-                echo "eslint_valid=false" >> $GITHUB_OUTPUT
-                exit 1  # This will fail the job and block merge
-              fi
-            else
-              echo "⚠️ No ESLint configuration found - skipping"
-              echo "eslint_valid=true" >> $GITHUB_OUTPUT
-            fi
+            echo "❌ ESLint failed - code must pass linting to merge"
+            echo "eslint_valid=false" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
       - name: Test Coverage
@@ -132,17 +107,11 @@ jobs:
         continue-on-error: true
         run: |
           echo "Running tests..."
-
-          if yarn run --help | grep -q "test"; then
-            if yarn test; then
-              echo "✅ Tests passed"
-              echo "tests_valid=true" >> $GITHUB_OUTPUT
-            else
-              echo "⚠️ Tests failed but not blocking"
-              echo "tests_valid=true" >> $GITHUB_OUTPUT  # Made non-blocking
-            fi
+          if pnpm test; then
+            echo "✅ Tests passed"
+            echo "tests_valid=true" >> $GITHUB_OUTPUT
           else
-            echo "⚠️ No test script found"
+            echo "⚠️ Tests failed but not blocking"
             echo "tests_valid=true" >> $GITHUB_OUTPUT
           fi
 
